@@ -1,0 +1,7 @@
+node_modules/
+lib/
+test-results/
+*.js
+package-lock.json
+.git/
+.github/ 
