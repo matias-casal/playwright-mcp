@@ -10,6 +10,8 @@
 - La pestaña activa actual
 - Estado de navegación
 
+> **Nota**: Este fork incluye compilación automática en pre-commit hooks para garantizar código sin errores.
+
 ## Solución Implementada
 
 Se han implementado múltiples funcionalidades para preservar el estado del navegador automáticamente y permitir control manual sobre la gestión del estado.

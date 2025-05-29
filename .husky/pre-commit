@@ -1,1 +1,15 @@
+#!/bin/sh
+
+# Build the project first - if this fails, the commit is aborted
+echo "🔨 Building project..."
+npm run build
+
+# Run linting and formatting
+echo "🧹 Running lint-staged..."
 npx lint-staged
+
+# Add compiled lib/ files to the commit
+echo "📦 Adding compiled lib/ files..."
+git add lib/
+
+echo "✅ Pre-commit checks passed!"

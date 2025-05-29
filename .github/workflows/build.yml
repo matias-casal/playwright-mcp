@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: CI/CD
 
 on:
   push:
@@ -7,13 +7,11 @@ on:
     branches: [ main, master ]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -24,13 +22,11 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
-    - name: Build
-      run: npm run build
+    - name: Install Playwright browsers
+      run: npx playwright install
       
-    - name: Commit and push if lib/ changed
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add lib/
-        git diff --staged --quiet || git commit -m "Auto-build: Update compiled lib/ folder"
-        git push 
+    - name: Run tests
+      run: npm test
+      
+    - name: Verify build works
+      run: npm run build 
