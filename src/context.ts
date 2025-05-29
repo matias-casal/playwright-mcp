@@ -38,6 +38,16 @@ type BrowserContextAndBrowser = {
   browserContext: playwright.BrowserContext;
 };
 
+type SavedBrowserState = {
+  storageState: any;
+  sessionStorage: Record<string, Record<string, string>>;
+  tabs: Array<{
+    url: string;
+    sessionStorage: Record<string, string>;
+  }>;
+  currentTabIndex: number;
+};
+
 export class Context {
   readonly tools: Tool[];
   readonly config: FullConfig;
@@ -52,6 +62,7 @@ export class Context {
     outputFile: string;
   }[] = [];
   clientVersion: { name: string; version: string } | undefined;
+  private _savedState: SavedBrowserState | undefined;
 
   constructor(tools: Tool[], config: FullConfig) {
     this.tools = tools;
@@ -320,7 +331,18 @@ ${code.join('\n')}
     });
   }
 
-  async resetBrowserContext(cleanProfile: boolean = false) {
+  async resetBrowserContext(cleanProfile: boolean = false, preserveState: boolean = true) {
+    let savedState: SavedBrowserState | undefined;
+
+    // Capture current state before closing if requested and context exists
+    if (preserveState && this._browserContextPromise) {
+      try {
+        savedState = await this._captureCurrentState();
+      } catch (error: any) {
+        // Failed to capture state, continuing without it
+      }
+    }
+
     // Close current context if it exists
     await this.close();
 
@@ -363,6 +385,176 @@ ${code.join('\n')}
     this._currentTab = undefined;
     this._modalStates = [];
     this._downloads = [];
+
+    // Store the saved state to restore later
+    this._savedState = savedState;
+  }
+
+  get browserContextPromise() {
+    return this._browserContextPromise;
+  }
+
+  get savedState() {
+    return this._savedState;
+  }
+
+  set savedState(state: SavedBrowserState | undefined) {
+    this._savedState = state;
+  }
+
+  async captureCurrentState(): Promise<SavedBrowserState | undefined> {
+    return this._captureCurrentState();
+  }
+
+  private async _captureCurrentState(): Promise<SavedBrowserState | undefined> {
+    try {
+      const { browserContext } = await this._browserContextPromise!;
+      const state: SavedBrowserState = {
+        storageState: null,
+        sessionStorage: {},
+        tabs: [],
+        currentTabIndex: 0,
+      };
+
+      // Capture storage state (cookies, localStorage, IndexedDB)
+      try {
+        state.storageState = await browserContext.storageState({
+          indexedDB: true, // Include IndexedDB for modern authentication
+        });
+      } catch (error) {
+        // Storage state capture failed, continuing without it
+      }
+
+      // Capture session storage and tab information from all tabs
+      const tabs = this.tabs();
+      if (tabs.length > 0) {
+        for (let i = 0; i < tabs.length; i++) {
+          const tab = tabs[i];
+          try {
+            // Get current URL
+            const url = tab.page.url();
+
+            // Get session storage for this domain
+            const sessionStorage: string = await tab.page.evaluate((): string => {
+              try {
+                return JSON.stringify(sessionStorage);
+              } catch {
+                return '{}';
+              }
+            });
+
+            state.tabs.push({
+              url,
+              sessionStorage: JSON.parse(sessionStorage),
+            });
+
+            // Track current tab
+            if (tab === this._currentTab) {
+              state.currentTabIndex = i;
+            }
+          } catch (error) {
+            // Failed to capture tab state, add empty entry
+            state.tabs.push({
+              url: 'about:blank',
+              sessionStorage: {},
+            });
+          }
+        }
+      }
+
+      return state;
+    } catch (error: any) {
+      // Failed to capture state
+      return undefined;
+    }
+  }
+
+  private async _restoreState(browserContext: playwright.BrowserContext): Promise<void> {
+    if (!this._savedState) return;
+
+    try {
+      // Restore session storage via init script for all domains
+      if (Object.keys(this._savedState.sessionStorage).length > 0) {
+        await browserContext.addInitScript((sessionStorageData: Record<string, any>) => {
+          try {
+            // Restore session storage for current domain
+            const hostname = window.location.hostname;
+            const data = sessionStorageData[hostname];
+            if (data) {
+              Object.keys(data).forEach(key => {
+                window.sessionStorage.setItem(key, data[key]);
+              });
+            }
+          } catch (error) {
+            // Session storage restoration failed
+          }
+        }, this._savedState.sessionStorage);
+      }
+
+      // Create and navigate tabs to restore previous session
+      if (this._savedState.tabs.length > 0) {
+        // The first page is automatically created by the context
+        const firstTab = this._savedState.tabs[0];
+        const existingPages = browserContext.pages();
+
+        if (existingPages.length > 0 && firstTab.url !== 'about:blank') {
+          // Navigate first existing page
+          try {
+            await existingPages[0].goto(firstTab.url);
+            // Restore session storage for this tab
+            await this._restoreSessionStorageForPage(existingPages[0], firstTab.sessionStorage);
+          } catch (error) {
+            // Navigation failed
+          }
+        }
+
+        // Create additional tabs
+        for (let i = 1; i < this._savedState.tabs.length; i++) {
+          const tabData = this._savedState.tabs[i];
+          try {
+            const page = await browserContext.newPage();
+            if (tabData.url !== 'about:blank') {
+              await page.goto(tabData.url);
+              // Restore session storage for this tab
+              await this._restoreSessionStorageForPage(page, tabData.sessionStorage);
+            }
+          } catch (error) {
+            // Tab creation/navigation failed
+          }
+        }
+
+        // Switch to the previously current tab
+        if (this._savedState.currentTabIndex >= 0 && this._savedState.currentTabIndex < this._tabs.length) {
+          try {
+            await this.selectTab(this._savedState.currentTabIndex + 1); // selectTab is 1-indexed
+          } catch (error) {
+            // Tab selection failed
+          }
+        }
+      }
+    } catch (error: any) {
+      // State restoration failed
+    } finally {
+      // Clear saved state after restoration attempt
+      this._savedState = undefined;
+    }
+  }
+
+  private async _restoreSessionStorageForPage(
+    page: playwright.Page,
+    sessionStorage: Record<string, string>
+  ): Promise<void> {
+    if (Object.keys(sessionStorage).length === 0) return;
+
+    try {
+      await page.evaluate((storage: Record<string, string>) => {
+        Object.keys(storage).forEach(key => {
+          window.sessionStorage.setItem(key, storage[key]);
+        });
+      }, sessionStorage);
+    } catch (error) {
+      // Session storage injection failed
+    }
   }
 
   private async _setupRequestInterception(context: playwright.BrowserContext) {
@@ -398,6 +590,10 @@ ${code.join('\n')}
     await this._setupRequestInterception(browserContext);
     for (const page of browserContext.pages()) this._onPageCreated(page);
     browserContext.on('page', page => this._onPageCreated(page));
+
+    // Restore saved state if available
+    await this._restoreState(browserContext);
+
     if (this.config.saveTrace) {
       await browserContext.tracing.start({
         name: 'trace',
@@ -410,6 +606,10 @@ ${code.join('\n')}
   }
 
   private async _createBrowserContext(): Promise<BrowserContextAndBrowser> {
+    // Check if we have saved storage state to restore
+    // Only use storage state if we explicitly have saved state (from a restart with preserveState: true)
+    const storageStateOption = this._savedState?.storageState || this.config.browser?.contextOptions?.storageState;
+
     if (this.config.browser?.remoteEndpoint) {
       if (typeof this.config.browser.remoteEndpoint !== 'string' || this.config.browser.remoteEndpoint.trim() === '') {
         throw new Error(`Invalid remote endpoint: ${this.config.browser.remoteEndpoint}. Must be a valid URL string.`);
@@ -420,7 +620,10 @@ ${code.join('\n')}
       if (this.config.browser.launchOptions)
         url.searchParams.set('launch-options', JSON.stringify(this.config.browser.launchOptions));
       const browser = await playwright[this.config.browser?.browserName ?? 'chromium'].connect(String(url));
-      const browserContext = await browser.newContext();
+      const browserContext = await browser.newContext({
+        ...(this.config.browser?.contextOptions || {}),
+        storageState: storageStateOption,
+      });
       return { browser, browserContext };
     }
 
@@ -430,22 +633,37 @@ ${code.join('\n')}
       }
 
       const browser = await playwright.chromium.connectOverCDP(this.config.browser.cdpEndpoint);
-      const browserContext = this.config.browser.isolated ? await browser.newContext() : browser.contexts()[0];
+      const browserContext = this.config.browser.isolated
+        ? await browser.newContext({
+            ...(this.config.browser?.contextOptions || {}),
+            storageState: storageStateOption,
+          })
+        : browser.contexts()[0];
       return { browser, browserContext };
     }
 
     return this.config.browser?.isolated
-      ? await createIsolatedContext(this.config.browser)
+      ? await createIsolatedContext(this.config.browser, storageStateOption)
       : await launchPersistentContext(this.config.browser);
   }
 }
 
-async function createIsolatedContext(browserConfig: FullConfig['browser']): Promise<BrowserContextAndBrowser> {
+async function createIsolatedContext(
+  browserConfig: FullConfig['browser'],
+  storageStateOption?: any
+): Promise<BrowserContextAndBrowser> {
   try {
     const browserName = browserConfig?.browserName ?? 'chromium';
     const browserType = playwright[browserName];
     const browser = await browserType.launch(browserConfig.launchOptions);
-    const browserContext = await browser.newContext(browserConfig.contextOptions);
+
+    // Only include storage state if explicitly provided (from preserved state)
+    const contextOptions = { ...(browserConfig.contextOptions || {}) };
+    if (storageStateOption) {
+      contextOptions.storageState = storageStateOption;
+    }
+
+    const browserContext = await browser.newContext(contextOptions);
     return { browser, browserContext };
   } catch (error: any) {
     if (error.message.includes("Executable doesn't exist"))

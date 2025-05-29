@@ -1,0 +1,27 @@
+{
+  "storageState": {
+    "cookies": [],
+    "origins": [
+      {
+        "origin": "http://localhost:8919",
+        "localStorage": [
+          {
+            "name": "savedTest",
+            "value": "savedValue"
+          }
+        ],
+        "indexedDB": []
+      }
+    ]
+  },
+  "sessionStorage": {},
+  "tabs": [
+    {
+      "url": "http://localhost:8919/",
+      "sessionStorage": {
+        "sessionTest": "sessionValue"
+      }
+    }
+  ],
+  "currentTabIndex": 0
+}
