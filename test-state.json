@@ -1,26 +1,13 @@
 {
   "storageState": {
     "cookies": [],
-    "origins": [
-      {
-        "origin": "http://localhost:8919",
-        "localStorage": [
-          {
-            "name": "savedTest",
-            "value": "savedValue"
-          }
-        ],
-        "indexedDB": []
-      }
-    ]
+    "origins": []
   },
   "sessionStorage": {},
   "tabs": [
     {
-      "url": "http://localhost:8919/",
-      "sessionStorage": {
-        "sessionTest": "sessionValue"
-      }
+      "url": "data:text/html,<script>localStorage.setItem(\"persistent\", \"data\"); sessionStorage.setItem(\"session\", \"info\");</script>",
+      "sessionStorage": {}
     }
   ],
   "currentTabIndex": 0

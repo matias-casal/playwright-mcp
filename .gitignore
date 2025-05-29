@@ -5,3 +5,16 @@ playwright-report/
 
 .idea
 .DS_Store
+
+# Environment configuration files
+.env
+.env.local
+.env.development
+.env.production
+
+# Browser data directories
+browser-data/
+dev-browser-data/
+*-browser-data/
+user-data-dir/
+profiles/
