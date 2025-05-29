@@ -17,12 +17,14 @@
 import { test, expect } from './fixtures.js';
 
 test('stitched aria frames', async ({ client }) => {
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: {
-      url: `data:text/html,<h1>Hello</h1><iframe src="data:text/html,<button>World</button><main><iframe src='data:text/html,<p>Nested</p>'></iframe></main>"></iframe><iframe src="data:text/html,<h1>Should be invisible</h1>" style="display: none;"></iframe>`,
-    },
-  })).toContainTextContent(`
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: {
+        url: `data:text/html,<h1>Hello</h1><iframe src="data:text/html,<button>World</button><main><iframe src='data:text/html,<p>Nested</p>'></iframe></main>"></iframe><iframe src="data:text/html,<h1>Should be invisible</h1>" style="display: none;"></iframe>`,
+      },
+    })
+  ).toContainTextContent(`
 \`\`\`yaml
 - generic [ref=e1]:
   - heading "Hello" [level=1] [ref=e2]
@@ -34,11 +36,13 @@ test('stitched aria frames', async ({ client }) => {
           - paragraph [ref=f2e2]: Nested
 \`\`\``);
 
-  expect(await client.callTool({
-    name: 'browser_click',
-    arguments: {
-      element: 'World',
-      ref: 'f1e2',
-    },
-  })).toContainTextContent(`// Click World`);
+  expect(
+    await client.callTool({
+      name: 'browser_click',
+      arguments: {
+        element: 'World',
+        ref: 'f1e2',
+      },
+    })
+  ).toContainTextContent(`// Click World`);
 });

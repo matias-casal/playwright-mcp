@@ -18,7 +18,9 @@ import { test, expect } from './fixtures.js';
 
 test('browser_install', async ({ client, mcpBrowser }) => {
   test.skip(mcpBrowser !== 'chromium', 'Test only chromium');
-  expect(await client.callTool({
-    name: 'browser_install',
-  })).toContainTextContent(`No open pages available.`);
+  expect(
+    await client.callTool({
+      name: 'browser_install',
+    })
+  ).toContainTextContent(`No open pages available.`);
 });

@@ -31,12 +31,13 @@ const test = baseTest.extend<{ serverEndpoint: string }>({
     const cp = spawn('node', [path.join(path.dirname(__filename), '../cli.js'), '--port', '0'], { stdio: 'pipe' });
     try {
       let stderr = '';
-      const url = await new Promise<string>(resolve => cp.stderr?.on('data', data => {
-        stderr += data.toString();
-        const match = stderr.match(/Listening on (http:\/\/.*)/);
-        if (match)
-          resolve(match[1]);
-      }));
+      const url = await new Promise<string>(resolve =>
+        cp.stderr?.on('data', data => {
+          stderr += data.toString();
+          const match = stderr.match(/Listening on (http:\/\/.*)/);
+          if (match) resolve(match[1]);
+        })
+      );
 
       await use(url);
     } finally {

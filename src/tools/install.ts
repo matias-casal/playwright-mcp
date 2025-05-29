@@ -27,7 +27,8 @@ const install = defineTool({
   schema: {
     name: 'browser_install',
     title: 'Install the browser specified in the config',
-    description: 'Install the browser specified in the config. Call this if you get an error about the browser not being installed.',
+    description:
+      'Install the browser specified in the config. Call this if you get an error about the browser not being installed.',
     inputSchema: z.object({}),
     type: 'destructive',
   },
@@ -44,10 +45,8 @@ const install = defineTool({
     child.stderr?.on('data', data => output.push(data.toString()));
     await new Promise<void>((resolve, reject) => {
       child.on('close', code => {
-        if (code === 0)
-          resolve();
-        else
-          reject(new Error(`Failed to install browser: ${output.join('')}`));
+        if (code === 0) resolve();
+        else reject(new Error(`Failed to install browser: ${output.join('')}`));
       });
     });
     return {
@@ -58,6 +57,4 @@ const install = defineTool({
   },
 });
 
-export default [
-  install,
-];
+export default [install];

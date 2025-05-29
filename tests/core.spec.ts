@@ -17,10 +17,12 @@
 import { test, expect } from './fixtures.js';
 
 test('browser_navigate', async ({ client, server }) => {
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: server.HELLO_WORLD },
-  })).toHaveTextContent(`
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.HELLO_WORLD },
+    })
+  ).toHaveTextContent(`
 - Ran Playwright code:
 \`\`\`js
 // Navigate to ${server.HELLO_WORLD}
@@ -33,28 +35,33 @@ await page.goto('${server.HELLO_WORLD}');
 \`\`\`yaml
 - generic [ref=e1]: Hello, world!
 \`\`\`
-`
-  );
+`);
 });
 
 test('browser_click', async ({ client, server }) => {
-  server.setContent('/', `
+  server.setContent(
+    '/',
+    `
     <title>Title</title>
     <button>Submit</button>
-  `, 'text/html');
+  `,
+    'text/html'
+  );
 
   await client.callTool({
     name: 'browser_navigate',
     arguments: { url: server.PREFIX },
   });
 
-  expect(await client.callTool({
-    name: 'browser_click',
-    arguments: {
-      element: 'Submit button',
-      ref: 'e2',
-    },
-  })).toHaveTextContent(`
+  expect(
+    await client.callTool({
+      name: 'browser_click',
+      arguments: {
+        element: 'Submit button',
+        ref: 'e2',
+      },
+    })
+  ).toHaveTextContent(`
 - Ran Playwright code:
 \`\`\`js
 // Click Submit button
@@ -71,27 +78,33 @@ await page.getByRole('button', { name: 'Submit' }).click();
 });
 
 test('browser_select_option', async ({ client, server }) => {
-  server.setContent('/', `
+  server.setContent(
+    '/',
+    `
     <title>Title</title>
     <select>
       <option value="foo">Foo</option>
       <option value="bar">Bar</option>
     </select>
-  `, 'text/html');
+  `,
+    'text/html'
+  );
 
   await client.callTool({
     name: 'browser_navigate',
     arguments: { url: server.PREFIX },
   });
 
-  expect(await client.callTool({
-    name: 'browser_select_option',
-    arguments: {
-      element: 'Select',
-      ref: 'e2',
-      values: ['bar'],
-    },
-  })).toHaveTextContent(`
+  expect(
+    await client.callTool({
+      name: 'browser_select_option',
+      arguments: {
+        element: 'Select',
+        ref: 'e2',
+        values: ['bar'],
+      },
+    })
+  ).toHaveTextContent(`
 - Ran Playwright code:
 \`\`\`js
 // Select options [bar] in Select
@@ -110,28 +123,34 @@ await page.getByRole('combobox').selectOption(['bar']);
 });
 
 test('browser_select_option (multiple)', async ({ client, server }) => {
-  server.setContent('/', `
+  server.setContent(
+    '/',
+    `
     <title>Title</title>
     <select multiple>
       <option value="foo">Foo</option>
       <option value="bar">Bar</option>
       <option value="baz">Baz</option>
     </select>
-  `, 'text/html');
+  `,
+    'text/html'
+  );
 
   await client.callTool({
     name: 'browser_navigate',
     arguments: { url: server.PREFIX },
   });
 
-  expect(await client.callTool({
-    name: 'browser_select_option',
-    arguments: {
-      element: 'Select',
-      ref: 'e2',
-      values: ['bar', 'baz'],
-    },
-  })).toHaveTextContent(`
+  expect(
+    await client.callTool({
+      name: 'browser_select_option',
+      arguments: {
+        element: 'Select',
+        ref: 'e2',
+        values: ['bar', 'baz'],
+      },
+    })
+  ).toHaveTextContent(`
 - Ran Playwright code:
 \`\`\`js
 // Select options [bar, baz] in Select
@@ -151,12 +170,16 @@ await page.getByRole('listbox').selectOption(['bar', 'baz']);
 });
 
 test('browser_type', async ({ client, server }) => {
-  server.setContent('/', `
+  server.setContent(
+    '/',
+    `
     <!DOCTYPE html>
     <html>
       <input type='keypress' onkeypress="console.log('Key pressed:', event.key, ', Text:', event.target.value)"></input>
     </html>
-  `, 'text/html');
+  `,
+    'text/html'
+  );
 
   await client.callTool({
     name: 'browser_navigate',
@@ -173,15 +196,21 @@ test('browser_type', async ({ client, server }) => {
       submit: true,
     },
   });
-  expect(await client.callTool({
-    name: 'browser_console_messages',
-  })).toHaveTextContent('[LOG] Key pressed: Enter , Text: Hi!');
+  expect(
+    await client.callTool({
+      name: 'browser_console_messages',
+    })
+  ).toHaveTextContent('[LOG] Key pressed: Enter , Text: Hi!');
 });
 
 test('browser_type (slowly)', async ({ client, server }) => {
-  server.setContent('/', `
+  server.setContent(
+    '/',
+    `
     <input type='text' onkeydown="console.log('Key pressed:', event.key, 'Text:', event.target.value)"></input>
-  `, 'text/html');
+  `,
+    'text/html'
+  );
 
   await client.callTool({
     name: 'browser_navigate',
@@ -199,25 +228,33 @@ test('browser_type (slowly)', async ({ client, server }) => {
       slowly: true,
     },
   });
-  expect(await client.callTool({
-    name: 'browser_console_messages',
-  })).toHaveTextContent([
-    '[LOG] Key pressed: H Text: ',
-    '[LOG] Key pressed: i Text: H',
-    '[LOG] Key pressed: ! Text: Hi',
-    '[LOG] Key pressed: Enter Text: Hi!',
-  ].join('\n'));
+  expect(
+    await client.callTool({
+      name: 'browser_console_messages',
+    })
+  ).toHaveTextContent(
+    [
+      '[LOG] Key pressed: H Text: ',
+      '[LOG] Key pressed: i Text: H',
+      '[LOG] Key pressed: ! Text: Hi',
+      '[LOG] Key pressed: Enter Text: Hi!',
+    ].join('\n')
+  );
 });
 
 test('browser_resize', async ({ client, server }) => {
-  server.setContent('/', `
+  server.setContent(
+    '/',
+    `
     <title>Resize Test</title>
     <body>
       <div id="size">Waiting for resize...</div>
       <script>new ResizeObserver(() => { document.getElementById("size").textContent = \`Window size: \${window.innerWidth}x\${window.innerHeight}\`; }).observe(document.body);
       </script>
     </body>
-  `, 'text/html');
+  `,
+    'text/html'
+  );
   await client.callTool({
     name: 'browser_navigate',
     arguments: { url: server.PREFIX },
@@ -236,4 +273,64 @@ test('browser_resize', async ({ client, server }) => {
 await page.setViewportSize({ width: 390, height: 780 });
 \`\`\``);
   await expect.poll(() => client.callTool({ name: 'browser_snapshot' })).toContainTextContent('Window size: 390x780');
+});
+
+test('browser_restart', async ({ client, server }) => {
+  // First, navigate to a page and establish some state
+  await client.callTool({
+    name: 'browser_navigate',
+    arguments: { url: server.HELLO_WORLD },
+  });
+
+  // Verify we have a page loaded
+  expect(
+    await client.callTool({
+      name: 'browser_snapshot',
+    })
+  ).toContainTextContent('Hello, world!');
+
+  // Now restart the browser
+  const restartResponse = await client.callTool({
+    name: 'browser_restart',
+    arguments: {},
+  });
+
+  // browser_restart should return a code block indicating the restart
+  expect(restartResponse).toContainTextContent('Restarted browser');
+  expect(restartResponse).toContainTextContent('reset all state');
+
+  // After restart, we should be able to navigate again
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.HELLO_WORLD },
+    })
+  ).toContainTextContent('Hello, world!');
+});
+
+test('browser_restart with cleanProfile', async ({ client, server }) => {
+  // First, navigate to a page
+  await client.callTool({
+    name: 'browser_navigate',
+    arguments: { url: server.HELLO_WORLD },
+  });
+
+  // Restart the browser with profile cleanup
+  const restartResponse = await client.callTool({
+    name: 'browser_restart',
+    arguments: { cleanProfile: true },
+  });
+
+  // Should indicate both restart and profile cleaning
+  expect(restartResponse).toContainTextContent('Restarted browser');
+  expect(restartResponse).toContainTextContent('cleaned profile directory');
+  expect(restartResponse).toContainTextContent('reset all state');
+
+  // After restart with clean profile, we should still be able to navigate
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.HELLO_WORLD },
+    })
+  ).toContainTextContent('Hello, world!');
 });

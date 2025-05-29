@@ -26,14 +26,19 @@ import { FullConfig } from './config.js';
 
 export function createConnection(config: FullConfig): Connection {
   const allTools = config.vision ? visionTools : snapshotTools;
-  const tools = allTools.filter(tool => !config.capabilities || tool.capability === 'core' || config.capabilities.includes(tool.capability));
+  const tools = allTools.filter(
+    tool => !config.capabilities || tool.capability === 'core' || config.capabilities.includes(tool.capability)
+  );
 
   const context = new Context(tools, config);
-  const server = new McpServer({ name: 'Playwright', version: packageJSON.version }, {
-    capabilities: {
-      tools: {},
+  const server = new McpServer(
+    { name: 'Playwright', version: packageJSON.version },
+    {
+      capabilities: {
+        tools: {},
+      },
     }
-  });
+  );
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
@@ -57,15 +62,19 @@ export function createConnection(config: FullConfig): Connection {
       isError: true,
     });
     const tool = tools.find(tool => tool.schema.name === request.params.name);
-    if (!tool)
-      return errorResult(`Tool "${request.params.name}" not found`);
-
+    if (!tool) return errorResult(`Tool "${request.params.name}" not found`);
 
     const modalStates = context.modalStates().map(state => state.type);
     if (tool.clearsModalState && !modalStates.includes(tool.clearsModalState))
-      return errorResult(`The tool "${request.params.name}" can only be used when there is related modal state present.`, ...context.modalStatesMarkdown());
+      return errorResult(
+        `The tool "${request.params.name}" can only be used when there is related modal state present.`,
+        ...context.modalStatesMarkdown()
+      );
     if (!tool.clearsModalState && modalStates.length)
-      return errorResult(`Tool "${request.params.name}" does not handle the modal state.`, ...context.modalStatesMarkdown());
+      return errorResult(
+        `Tool "${request.params.name}" does not handle the modal state.`,
+        ...context.modalStatesMarkdown()
+      );
 
     try {
       return await context.run(tool, request.params.arguments);

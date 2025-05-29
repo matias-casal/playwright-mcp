@@ -78,8 +78,8 @@ export type FullConfig = Config & {
     browserName: NonNullable<BrowserUserConfig['browserName']>;
     launchOptions: NonNullable<BrowserUserConfig['launchOptions']>;
     contextOptions: NonNullable<BrowserUserConfig['contextOptions']>;
-  },
-  network: NonNullable<Config['network']>,
+  };
+  network: NonNullable<Config['network']>;
   outputDir: string;
 };
 
@@ -92,10 +92,8 @@ export async function resolveCLIConfig(cliOptions: CLIOptions): Promise<FullConf
   const cliOverrides = await configFromCLIOptions(cliOptions);
   const result = mergeConfig(mergeConfig(defaultConfig, configInFile), cliOverrides);
   // Derive artifact output directory from config.outputDir
-  if (result.saveTrace)
-    result.browser.launchOptions.tracesDir = path.join(result.outputDir, 'traces');
-  if (result.browser.browserName === 'chromium')
-    (result.browser.launchOptions as any).cdpPort = await findFreePort();
+  if (result.saveTrace) result.browser.launchOptions.tracesDir = path.join(result.outputDir, 'traces');
+  if (result.browser.browserName === 'chromium') (result.browser.launchOptions as any).cdpPort = await findFreePort();
   return result;
 }
 
@@ -131,41 +129,34 @@ export async function configFromCLIOptions(cliOptions: CLIOptions): Promise<Conf
   };
 
   // --no-sandbox was passed, disable the sandbox
-  if (!cliOptions.sandbox)
-    launchOptions.chromiumSandbox = false;
+  if (!cliOptions.sandbox) launchOptions.chromiumSandbox = false;
 
   if (cliOptions.proxyServer) {
     launchOptions.proxy = {
-      server: cliOptions.proxyServer
+      server: cliOptions.proxyServer,
     };
-    if (cliOptions.proxyBypass)
-      launchOptions.proxy.bypass = cliOptions.proxyBypass;
+    if (cliOptions.proxyBypass) launchOptions.proxy.bypass = cliOptions.proxyBypass;
   }
 
   // Context options
   const contextOptions: BrowserContextOptions = cliOptions.device ? devices[cliOptions.device] : {};
-  if (cliOptions.storageState)
-    contextOptions.storageState = cliOptions.storageState;
+  if (cliOptions.storageState) contextOptions.storageState = cliOptions.storageState;
 
-  if (cliOptions.userAgent)
-    contextOptions.userAgent = cliOptions.userAgent;
+  if (cliOptions.userAgent) contextOptions.userAgent = cliOptions.userAgent;
 
   if (cliOptions.viewportSize) {
     try {
       const [width, height] = cliOptions.viewportSize.split(',').map(n => +n);
-      if (isNaN(width) || isNaN(height))
-        throw new Error('bad values');
+      if (isNaN(width) || isNaN(height)) throw new Error('bad values');
       contextOptions.viewport = { width, height };
     } catch (e) {
       throw new Error('Invalid viewport size format: use "width,height", for example --viewport-size="800,600"');
     }
   }
 
-  if (cliOptions.ignoreHttpsErrors)
-    contextOptions.ignoreHTTPSErrors = true;
+  if (cliOptions.ignoreHttpsErrors) contextOptions.ignoreHTTPSErrors = true;
 
-  if (cliOptions.blockServiceWorkers)
-    contextOptions.serviceWorkers = 'block';
+  if (cliOptions.blockServiceWorkers) contextOptions.serviceWorkers = 'block';
 
   const result: Config = {
     browser: {
@@ -197,17 +188,36 @@ export async function configFromCLIOptions(cliOptions: CLIOptions): Promise<Conf
 async function findFreePort() {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
+
+    // Add timeout to prevent hanging indefinitely
+    const timeout = setTimeout(() => {
+      server.close();
+      reject(new Error('Timeout finding free port'));
+    }, 5000);
+
     server.listen(0, () => {
-      const { port } = server.address() as net.AddressInfo;
+      const address = server.address();
+      if (!address || typeof address === 'string') {
+        clearTimeout(timeout);
+        server.close();
+        reject(new Error('Could not determine port from server address'));
+        return;
+      }
+
+      const { port } = address as net.AddressInfo;
+      clearTimeout(timeout);
       server.close(() => resolve(port));
     });
-    server.on('error', reject);
+
+    server.on('error', error => {
+      clearTimeout(timeout);
+      reject(error);
+    });
   });
 }
 
 async function loadConfig(configFile: string | undefined): Promise<Config> {
-  if (!configFile)
-    return {};
+  if (!configFile) return {};
 
   try {
     return JSON.parse(await fs.promises.readFile(configFile, 'utf8'));
@@ -223,9 +233,7 @@ export async function outputFile(config: FullConfig, name: string): Promise<stri
 }
 
 function pickDefined<T extends object>(obj: T | undefined): Partial<T> {
-  return Object.fromEntries(
-      Object.entries(obj ?? {}).filter(([_, v]) => v !== undefined)
-  ) as Partial<T>;
+  return Object.fromEntries(Object.entries(obj ?? {}).filter(([_, v]) => v !== undefined)) as Partial<T>;
 }
 
 function mergeConfig(base: FullConfig, overrides: Config): FullConfig {
@@ -246,8 +254,7 @@ function mergeConfig(base: FullConfig, overrides: Config): FullConfig {
     remoteEndpoint: overrides.browser?.remoteEndpoint ?? base.browser?.remoteEndpoint,
   };
 
-  if (browser.browserName !== 'chromium' && browser.launchOptions)
-    delete browser.launchOptions.channel;
+  if (browser.browserName !== 'chromium' && browser.launchOptions) delete browser.launchOptions.channel;
 
   return {
     ...pickDefined(base),
@@ -256,6 +263,6 @@ function mergeConfig(base: FullConfig, overrides: Config): FullConfig {
     network: {
       ...pickDefined(base.network),
       ...pickDefined(overrides.network),
-    }
+    },
   } as FullConfig;
 }

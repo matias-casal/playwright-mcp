@@ -28,7 +28,13 @@ export async function startStdioTransport(server: Server) {
   await server.createConnection(new StdioServerTransport());
 }
 
-async function handleSSE(server: Server, req: http.IncomingMessage, res: http.ServerResponse, url: URL, sessions: Map<string, SSEServerTransport>) {
+async function handleSSE(
+  server: Server,
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+  url: URL,
+  sessions: Map<string, SSEServerTransport>
+) {
   if (req.method === 'POST') {
     const sessionId = url.searchParams.get('sessionId');
     if (!sessionId) {
@@ -59,7 +65,12 @@ async function handleSSE(server: Server, req: http.IncomingMessage, res: http.Se
   res.end('Method not allowed');
 }
 
-async function handleStreamable(server: Server, req: http.IncomingMessage, res: http.ServerResponse, sessions: Map<string, StreamableHTTPServerTransport>) {
+async function handleStreamable(
+  server: Server,
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+  sessions: Map<string, StreamableHTTPServerTransport>
+) {
   const sessionId = req.headers['mcp-session-id'] as string | undefined;
   if (sessionId) {
     const transport = sessions.get(sessionId);
@@ -76,11 +87,10 @@ async function handleStreamable(server: Server, req: http.IncomingMessage, res: 
       sessionIdGenerator: () => crypto.randomUUID(),
       onsessioninitialized: sessionId => {
         sessions.set(sessionId, transport);
-      }
+      },
     });
     transport.onclose = () => {
-      if (transport.sessionId)
-        sessions.delete(transport.sessionId);
+      if (transport.sessionId) sessions.delete(transport.sessionId);
     };
     await server.createConnection(transport);
     await transport.handleRequest(req, res);
@@ -96,10 +106,8 @@ export function startHttpTransport(server: Server, port: number, hostname: strin
   const streamableSessions = new Map<string, StreamableHTTPServerTransport>();
   const httpServer = http.createServer(async (req, res) => {
     const url = new URL(`http://localhost${req.url}`);
-    if (url.pathname.startsWith('/mcp'))
-      await handleStreamable(server, req, res, streamableSessions);
-    else
-      await handleSSE(server, req, res, url, sseSessions);
+    if (url.pathname.startsWith('/mcp')) await handleStreamable(server, req, res, streamableSessions);
+    else await handleSSE(server, req, res, url, sseSessions);
   });
   httpServer.listen(port, hostname, () => {
     const address = httpServer.address();
@@ -110,20 +118,23 @@ export function startHttpTransport(server: Server, port: number, hostname: strin
     } else {
       const resolvedPort = address.port;
       let resolvedHost = address.family === 'IPv4' ? address.address : `[${address.address}]`;
-      if (resolvedHost === '0.0.0.0' || resolvedHost === '[::]')
-        resolvedHost = 'localhost';
+      if (resolvedHost === '0.0.0.0' || resolvedHost === '[::]') resolvedHost = 'localhost';
       url = `http://${resolvedHost}:${resolvedPort}`;
     }
     const message = [
       `Listening on ${url}`,
       'Put this in your client config:',
-      JSON.stringify({
-        'mcpServers': {
-          'playwright': {
-            'url': `${url}/sse`
-          }
-        }
-      }, undefined, 2),
+      JSON.stringify(
+        {
+          mcpServers: {
+            playwright: {
+              url: `${url}/sse`,
+            },
+          },
+        },
+        undefined,
+        2
+      ),
       'If your client supports streamable HTTP, you can use the /mcp endpoint instead.',
     ].join('\n');
     // eslint-disable-next-line no-console

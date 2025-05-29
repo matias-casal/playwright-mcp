@@ -33,7 +33,7 @@ const console = defineTool({
       code: [`// <internal code to get console messages>`],
       action: async () => {
         return {
-          content: [{ type: 'text', text: log }]
+          content: [{ type: 'text', text: log }],
         };
       },
       captureSnapshot: false,
@@ -42,6 +42,4 @@ const console = defineTool({
   },
 });
 
-export default [
-  console,
-];
+export default [console];

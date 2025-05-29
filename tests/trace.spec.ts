@@ -26,10 +26,12 @@ test('check that trace is saved', async ({ startClient, server }, testInfo) => {
     args: ['--save-trace', `--output-dir=${outputDir}`],
   });
 
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: server.HELLO_WORLD },
-  })).toContainTextContent(`Navigate to http://localhost`);
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.HELLO_WORLD },
+    })
+  ).toContainTextContent(`Navigate to http://localhost`);
 
   expect(fs.existsSync(path.join(outputDir, 'traces', 'trace.trace'))).toBeTruthy();
 });

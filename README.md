@@ -9,6 +9,7 @@ A Model Context Protocol (MCP) server that provides browser automation capabilit
 - **Deterministic tool application**. Avoids ambiguity common with screenshot-based approaches.
 
 ### Requirements
+
 - Node.js 18 or newer
 - VS Code, Cursor, Windsurf, Claude Desktop or any other MCP client
 
@@ -36,7 +37,6 @@ First, install the Playwright MCP server with your client. A typical configurati
 
 [<img src="https://img.shields.io/badge/VS_Code-VS_Code?style=flat-square&label=Install%20Server&color=0098FF" alt="Install in VS Code">](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522playwright%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540playwright%252Fmcp%2540latest%2522%255D%257D) [<img alt="Install in VS Code Insiders" src="https://img.shields.io/badge/VS_Code_Insiders-VS_Code_Insiders?style=flat-square&label=Install%20Server&color=24bfa5">](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522playwright%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540playwright%252Fmcp%2540latest%2522%255D%257D)
 
-
 <details><summary><b>Install in VS Code</b></summary>
 
 You can also install the Playwright MCP server using the VS Code CLI:
@@ -47,6 +47,7 @@ code --add-mcp '{"name":"playwright","command":"npx","args":["@playwright/mcp@la
 ```
 
 After installation, the Playwright MCP server will be available for use with your GitHub Copilot agent in VS Code.
+
 </details>
 
 <details>
@@ -66,6 +67,7 @@ Go to `Cursor Settings` -> `MCP` -> `Add new MCP Server`. Name to your liking, u
   }
 }
 ```
+
 </details>
 
 <details>
@@ -85,6 +87,7 @@ Follow Windsuff MCP [documentation](https://docs.windsurf.com/windsurf/cascade/m
   }
 }
 ```
+
 </details>
 
 <details>
@@ -104,6 +107,7 @@ Follow the MCP install [guide](https://modelcontextprotocol.io/quickstart/user),
   }
 }
 ```
+
 </details>
 
 ### Configuration
@@ -286,13 +290,14 @@ npx @playwright/mcp@latest --config path/to/config.json
     // List of origins to block the browser to request. Origins matching both `allowedOrigins` and `blockedOrigins` will be blocked.
     blockedOrigins?: string[];
   };
- 
+
   /**
    * Do not send image responses to the client.
    */
   noImageResponses?: boolean;
 }
 ```
+
 </details>
 
 ### Standalone MCP server
@@ -337,6 +342,7 @@ You can build the Docker image yourself.
 ```
 docker build -t mcr.microsoft.com/playwright/mcp .
 ```
+
 </details>
 
 <details>
@@ -359,6 +365,7 @@ http.createServer(async (req, res) => {
   // ...
 });
 ```
+
 </details>
 
 ### Tools
@@ -590,6 +597,15 @@ X Y coordinate space, based on the provided screenshot.
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
+- **browser_restart**
+  - Title: Restart browser
+  - Description: Restart the browser and reset all state. Use this when the browser is in an inconsistent state or experiencing connection issues.
+  - Parameters:
+    - `cleanProfile` (boolean, optional): Clean the browser profile directory to fix corruption issues. Use with caution as this will clear all browser data including cookies and saved logins.
+  - Read-only: **true**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
 - **browser_resize**
   - Title: Resize browser window
   - Description: Resize the browser window
@@ -752,6 +768,5 @@ X Y coordinate space, based on the provided screenshot.
   - Read-only: **false**
 
 </details>
-
 
 <!--- End of tools generated section -->

@@ -57,10 +57,8 @@ export class TestServer {
   }
 
   constructor(port: number, sslOptions?: object) {
-    if (sslOptions)
-      this._server = https.createServer(sslOptions, this._onRequest.bind(this));
-    else
-      this._server = http.createServer(this._onRequest.bind(this));
+    if (sslOptions) this._server = https.createServer(sslOptions, this._onRequest.bind(this));
+    else this._server = http.createServer(this._onRequest.bind(this));
     this._server.listen(port);
     this.debugServer = debug('pw:testserver');
 
@@ -107,8 +105,7 @@ export class TestServer {
 
   waitForRequest(path: string): Promise<http.IncomingMessage> {
     let promise = this._requestSubscribers.get(path);
-    if (promise)
-      return promise;
+    if (promise) return promise;
     let fulfill, reject;
     promise = new Promise((f, r) => {
       fulfill = f;
@@ -126,26 +123,27 @@ export class TestServer {
     this._extraHeaders.clear();
     this._server.closeAllConnections();
     const error = new Error('Static Server has been reset');
-    for (const subscriber of this._requestSubscribers.values())
-      subscriber[rejectSymbol].call(null, error);
+    for (const subscriber of this._requestSubscribers.values()) subscriber[rejectSymbol].call(null, error);
     this._requestSubscribers.clear();
 
     this.setContent('/favicon.ico', '', 'image/x-icon');
 
     this.setContent('/', ``, 'text/html');
 
-    this.setContent('/hello-world', `
+    this.setContent(
+      '/hello-world',
+      `
       <title>Title</title>
       <body>Hello, world!</body>
-    `, 'text/html');
+    `,
+      'text/html'
+    );
   }
 
   _onRequest(request: http.IncomingMessage, response: http.ServerResponse) {
     request.on('error', error => {
-      if ((error as any).code === 'ECONNRESET')
-        response.end();
-      else
-        throw error;
+      if ((error as any).code === 'ECONNRESET') response.end();
+      else throw error;
     });
     (request as any).postBody = new Promise(resolve => {
       const chunks: Buffer[] = [];

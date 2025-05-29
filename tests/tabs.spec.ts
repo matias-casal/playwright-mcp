@@ -28,17 +28,21 @@ async function createTab(client: Client, title: string, body: string) {
 }
 
 test('list initial tabs', async ({ client }) => {
-  expect(await client.callTool({
-    name: 'browser_tab_list',
-  })).toHaveTextContent(`### Open tabs
+  expect(
+    await client.callTool({
+      name: 'browser_tab_list',
+    })
+  ).toHaveTextContent(`### Open tabs
 - 1: (current) [] (about:blank)`);
 });
 
 test('list first tab', async ({ client }) => {
   await createTab(client, 'Tab one', 'Body one');
-  expect(await client.callTool({
-    name: 'browser_tab_list',
-  })).toHaveTextContent(`### Open tabs
+  expect(
+    await client.callTool({
+      name: 'browser_tab_list',
+    })
+  ).toHaveTextContent(`### Open tabs
 - 1: [] (about:blank)
 - 2: (current) [Tab one] (data:text/html,<title>Tab one</title><body>Body one</body>)`);
 });
@@ -85,12 +89,14 @@ test('create new tab', async ({ client }) => {
 test('select tab', async ({ client }) => {
   await createTab(client, 'Tab one', 'Body one');
   await createTab(client, 'Tab two', 'Body two');
-  expect(await client.callTool({
-    name: 'browser_tab_select',
-    arguments: {
-      index: 2,
-    },
-  })).toHaveTextContent(`
+  expect(
+    await client.callTool({
+      name: 'browser_tab_select',
+      arguments: {
+        index: 2,
+      },
+    })
+  ).toHaveTextContent(`
 - Ran Playwright code:
 \`\`\`js
 // <internal code to select tab 2>
@@ -113,12 +119,14 @@ test('select tab', async ({ client }) => {
 test('close tab', async ({ client }) => {
   await createTab(client, 'Tab one', 'Body one');
   await createTab(client, 'Tab two', 'Body two');
-  expect(await client.callTool({
-    name: 'browser_tab_close',
-    arguments: {
-      index: 3,
-    },
-  })).toHaveTextContent(`
+  expect(
+    await client.callTool({
+      name: 'browser_tab_close',
+      arguments: {
+        index: 3,
+      },
+    })
+  ).toHaveTextContent(`
 - Ran Playwright code:
 \`\`\`js
 // <internal code to close tab 3>

@@ -40,7 +40,7 @@ type CDPServer = {
 type TestFixtures = {
   client: Client;
   visionClient: Client;
-  startClient: (options?: { clientName?: string, args?: string[], config?: Config }) => Promise<Client>;
+  startClient: (options?: { clientName?: string; args?: string[]; config?: Config }) => Promise<Client>;
   wsEndpoint: string;
   cdpServer: CDPServer;
   server: TestServer;
@@ -49,11 +49,10 @@ type TestFixtures = {
 };
 
 type WorkerFixtures = {
-  _workerServers: { server: TestServer, httpsServer: TestServer };
+  _workerServers: { server: TestServer; httpsServer: TestServer };
 };
 
 export const test = baseTest.extend<TestFixtures & TestOptions, WorkerFixtures>({
-
   client: async ({ startClient }, use) => {
     await use(await startClient());
   },
@@ -69,14 +68,10 @@ export const test = baseTest.extend<TestFixtures & TestOptions, WorkerFixtures>(
 
     await use(async options => {
       const args = ['--user-data-dir', path.relative(configDir, userDataDir)];
-      if (process.env.CI && process.platform === 'linux')
-        args.push('--no-sandbox');
-      if (mcpHeadless)
-        args.push('--headless');
-      if (mcpBrowser)
-        args.push(`--browser=${mcpBrowser}`);
-      if (options?.args)
-        args.push(...options.args);
+      if (process.env.CI && process.platform === 'linux') args.push('--no-sandbox');
+      if (mcpHeadless) args.push('--headless');
+      if (mcpBrowser) args.push(`--browser=${mcpBrowser}`);
+      if (options?.args) args.push(...options.args);
       if (options?.config) {
         const configFile = testInfo.outputPath('config.json');
         await fs.promises.writeFile(configFile, JSON.stringify(options.config, null, 2));
@@ -93,14 +88,17 @@ export const test = baseTest.extend<TestFixtures & TestOptions, WorkerFixtures>(
     await client?.close();
   },
 
-  wsEndpoint: async ({ }, use) => {
+  wsEndpoint: async ({}, use) => {
     const browserServer = await chromium.launchServer();
     await use(browserServer.wsEndpoint());
     await browserServer.close();
   },
 
   cdpServer: async ({ mcpBrowser }, use, testInfo) => {
-    test.skip(!['chrome', 'msedge', 'chromium'].includes(mcpBrowser!), 'CDP is not supported for non-Chromium browsers');
+    test.skip(
+      !['chrome', 'msedge', 'chromium'].includes(mcpBrowser!),
+      'CDP is not supported for non-Chromium browsers'
+    );
 
     let browserContext: BrowserContext | undefined;
     const port = 3200 + test.info().parallelIndex;
@@ -110,12 +108,10 @@ export const test = baseTest.extend<TestFixtures & TestOptions, WorkerFixtures>(
         browserContext = await chromium.launchPersistentContext(testInfo.outputPath('cdp-user-data-dir'), {
           channel: mcpBrowser,
           headless: true,
-          args: [
-            `--remote-debugging-port=${port}`,
-          ],
+          args: [`--remote-debugging-port=${port}`],
         });
         return browserContext;
-      }
+      },
     });
     await browserContext?.close();
   },
@@ -128,20 +124,20 @@ export const test = baseTest.extend<TestFixtures & TestOptions, WorkerFixtures>(
 
   mcpMode: [undefined, { option: true }],
 
-  _workerServers: [async ({}, use, workerInfo) => {
-    const port = 8907 + workerInfo.workerIndex * 4;
-    const server = await TestServer.create(port);
+  _workerServers: [
+    async ({}, use, workerInfo) => {
+      const port = 8907 + workerInfo.workerIndex * 4;
+      const server = await TestServer.create(port);
 
-    const httpsPort = port + 1;
-    const httpsServer = await TestServer.createHTTPS(httpsPort);
+      const httpsPort = port + 1;
+      const httpsServer = await TestServer.createHTTPS(httpsPort);
 
-    await use({ server, httpsServer });
+      await use({ server, httpsServer });
 
-    await Promise.all([
-      server.stop(),
-      httpsServer.stop(),
-    ]);
-  }, { scope: 'worker' }],
+      await Promise.all([server.stop(), httpsServer.stop()]);
+    },
+    { scope: 'worker' },
+  ],
 
   server: async ({ _workerServers }, use) => {
     _workerServers.server.reset();
@@ -158,7 +154,14 @@ function createTransport(args: string[], mcpMode: TestOptions['mcpMode']) {
   // NOTE: Can be removed when we drop Node.js 18 support and changed to import.meta.filename.
   const __filename = url.fileURLToPath(import.meta.url);
   if (mcpMode === 'docker') {
-    const dockerArgs = ['run', '--rm', '-i', '--network=host', '-v', `${test.info().project.outputDir}:/app/test-results`];
+    const dockerArgs = [
+      'run',
+      '--rm',
+      '-i',
+      '--network=host',
+      '-v',
+      `${test.info().project.outputDir}:/app/test-results`,
+    ];
     return new StdioClientTransport({
       command: 'docker',
       args: [...dockerArgs, 'playwright-mcp-dev:latest', ...args],
@@ -180,15 +183,11 @@ export const expect = baseExpect.extend({
     try {
       const text = (response.content as any)[0].text;
       if (typeof content === 'string') {
-        if (isNot)
-          baseExpect(text.trim()).not.toBe(content.trim());
-        else
-          baseExpect(text.trim()).toBe(content.trim());
+        if (isNot) baseExpect(text.trim()).not.toBe(content.trim());
+        else baseExpect(text.trim()).toBe(content.trim());
       } else {
-        if (isNot)
-          baseExpect(text).not.toMatch(content);
-        else
-          baseExpect(text).toMatch(content);
+        if (isNot) baseExpect(text).not.toMatch(content);
+        else baseExpect(text).toMatch(content);
       }
     } catch (e) {
       return {
@@ -208,10 +207,8 @@ export const expect = baseExpect.extend({
       content = Array.isArray(content) ? content : [content];
       const texts = (response.content as any).map(c => c.text);
       for (let i = 0; i < texts.length; i++) {
-        if (isNot)
-          expect(texts[i]).not.toContain(content[i]);
-        else
-          expect(texts[i]).toContain(content[i]);
+        if (isNot) expect(texts[i]).not.toContain(content[i]);
+        else expect(texts[i]).toContain(content[i]);
       }
     } catch (e) {
       return {

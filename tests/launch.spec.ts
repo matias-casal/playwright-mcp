@@ -24,14 +24,18 @@ test('test reopen browser', async ({ client, server }) => {
     arguments: { url: server.HELLO_WORLD },
   });
 
-  expect(await client.callTool({
-    name: 'browser_close',
-  })).toContainTextContent('No open pages available');
+  expect(
+    await client.callTool({
+      name: 'browser_close',
+    })
+  ).toContainTextContent('No open pages available');
 
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: server.HELLO_WORLD },
-  })).toContainTextContent(`- generic [ref=e1]: Hello, world!`);
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.HELLO_WORLD },
+    })
+  ).toContainTextContent(`- generic [ref=e1]: Hello, world!`);
 });
 
 test('executable path', async ({ startClient, server }) => {
@@ -44,14 +48,18 @@ test('executable path', async ({ startClient, server }) => {
 });
 
 test('persistent context', async ({ startClient, server }) => {
-  server.setContent('/', `
+  server.setContent(
+    '/',
+    `
     <body>
     </body>
     <script>
       document.body.textContent = localStorage.getItem('test') ? 'Storage: YES' : 'Storage: NO';
       localStorage.setItem('test', 'test');
     </script>
-  `, 'text/html');
+  `,
+    'text/html'
+  );
 
   const client = await startClient();
   const response = await client.callTool({
@@ -76,14 +84,18 @@ test('persistent context', async ({ startClient, server }) => {
 });
 
 test('isolated context', async ({ startClient, server }) => {
-  server.setContent('/', `
+  server.setContent(
+    '/',
+    `
     <body>
     </body>
     <script>
       document.body.textContent = localStorage.getItem('test') ? 'Storage: YES' : 'Storage: NO';
       localStorage.setItem('test', 'test');
     </script>
-  `, 'text/html');
+  `,
+    'text/html'
+  );
 
   const client = await startClient({ args: [`--isolated`] });
   const response = await client.callTool({
@@ -106,30 +118,66 @@ test('isolated context', async ({ startClient, server }) => {
 
 test('isolated context with storage state', async ({ startClient, server }, testInfo) => {
   const storageStatePath = testInfo.outputPath('storage-state.json');
-  await fs.promises.writeFile(storageStatePath, JSON.stringify({
-    origins: [
-      {
-        origin: server.PREFIX,
-        localStorage: [{ name: 'test', value: 'session-value' }],
-      },
-    ],
-  }));
+  await fs.promises.writeFile(
+    storageStatePath,
+    JSON.stringify({
+      origins: [
+        {
+          origin: server.PREFIX,
+          localStorage: [{ name: 'test', value: 'session-value' }],
+        },
+      ],
+    })
+  );
 
-  server.setContent('/', `
+  server.setContent(
+    '/',
+    `
     <body>
     </body>
     <script>
       document.body.textContent = 'Storage: ' + localStorage.getItem('test');
     </script>
-  `, 'text/html');
+  `,
+    'text/html'
+  );
 
-  const client = await startClient({ args: [
-    `--isolated`,
-    `--storage-state=${storageStatePath}`,
-  ] });
+  const client = await startClient({
+    args: [`--isolated`, `--storage-state=${storageStatePath}`],
+  });
   const response = await client.callTool({
     name: 'browser_navigate',
     arguments: { url: server.PREFIX },
   });
   expect(response).toContainTextContent(`Storage: session-value`);
+});
+
+test('browser_restart recovery', async ({ client, server }) => {
+  // Navigate to establish initial state
+  await client.callTool({
+    name: 'browser_navigate',
+    arguments: { url: server.HELLO_WORLD },
+  });
+
+  // Close the browser to simulate a problem
+  await client.callTool({
+    name: 'browser_close',
+  });
+
+  // Use browser_restart to recover (this should work even after close)
+  const restartResponse = await client.callTool({
+    name: 'browser_restart',
+    arguments: {},
+  });
+
+  // Should indicate successful restart
+  expect(restartResponse).toContainTextContent('Restarted browser');
+
+  // Should be able to navigate normally after restart
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.HELLO_WORLD },
+    })
+  ).toContainTextContent('Hello, world!');
 });

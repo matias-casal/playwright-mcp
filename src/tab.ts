@@ -38,11 +38,14 @@ export class Tab {
     page.on('response', response => this._requests.set(response.request(), response));
     page.on('close', () => this._onClose());
     page.on('filechooser', chooser => {
-      this.context.setModalState({
-        type: 'fileChooser',
-        description: 'File chooser',
-        fileChooser: chooser,
-      }, this);
+      this.context.setModalState(
+        {
+          type: 'fileChooser',
+          description: 'File chooser',
+          fileChooser: chooser,
+        },
+        this
+      );
     });
     page.on('dialog', dialog => this.context.dialogShown(this, dialog));
     page.on('download', download => {
@@ -79,18 +82,13 @@ export class Tab {
     } catch (_e: unknown) {
       const e = _e as Error;
       const mightBeDownload =
-        e.message.includes('net::ERR_ABORTED') // chromium
-        || e.message.includes('Download is starting'); // firefox + webkit
-      if (!mightBeDownload)
-        throw e;
+        e.message.includes('net::ERR_ABORTED') || // chromium
+        e.message.includes('Download is starting'); // firefox + webkit
+      if (!mightBeDownload) throw e;
 
       // on chromium, the download event is fired *after* page.goto rejects, so we wait a lil bit
-      const download = await Promise.race([
-        downloadEvent,
-        new Promise(resolve => setTimeout(resolve, 500)),
-      ]);
-      if (!download)
-        throw e;
+      const download = await Promise.race([downloadEvent, new Promise(resolve => setTimeout(resolve, 500))]);
+      if (!download) throw e;
     }
 
     // Cap load event to 5 seconds, the page is operational at this point.
@@ -102,8 +100,7 @@ export class Tab {
   }
 
   snapshotOrDie(): PageSnapshot {
-    if (!this._snapshot)
-      throw new Error('No snapshot available');
+    if (!this._snapshot) throw new Error('No snapshot available');
     return this._snapshot;
   }
 

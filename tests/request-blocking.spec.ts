@@ -38,7 +38,7 @@ test('default to allow all', async ({ server, client }) => {
 
 test('blocked works', async ({ startClient }) => {
   const client = await startClient({
-    args: ['--blocked-origins', 'microsoft.com;example.com;playwright.dev']
+    args: ['--blocked-origins', 'microsoft.com;example.com;playwright.dev'],
   });
   const result = await fetchPage(client, 'https://example.com/');
   expect(result).toMatch(BLOCK_MESSAGE);
@@ -47,7 +47,7 @@ test('blocked works', async ({ startClient }) => {
 test('allowed works', async ({ server, startClient }) => {
   server.setContent('/ppp', 'content:PPP', 'text/html');
   const client = await startClient({
-    args: ['--allowed-origins', `microsoft.com;${new URL(server.PREFIX).host};playwright.dev`]
+    args: ['--allowed-origins', `microsoft.com;${new URL(server.PREFIX).host};playwright.dev`],
   });
   const result = await fetchPage(client, server.PREFIX + 'ppp');
   expect(result).toContain('content:PPP');
@@ -55,10 +55,7 @@ test('allowed works', async ({ server, startClient }) => {
 
 test('blocked takes precedence', async ({ startClient }) => {
   const client = await startClient({
-    args: [
-      '--blocked-origins', 'example.com',
-      '--allowed-origins', 'example.com',
-    ],
+    args: ['--blocked-origins', 'example.com', '--allowed-origins', 'example.com'],
   });
   const result = await fetchPage(client, 'https://example.com/');
   expect(result).toMatch(BLOCK_MESSAGE);

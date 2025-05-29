@@ -34,10 +34,12 @@ test('--device should work', async ({ startClient, server }) => {
     `);
   });
 
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: {
-      url: server.PREFIX,
-    },
-  })).toContainTextContent(`393x659`);
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: {
+        url: server.PREFIX,
+      },
+    })
+  ).toContainTextContent(`393x659`);
 });

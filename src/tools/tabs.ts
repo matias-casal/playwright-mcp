@@ -35,96 +35,97 @@ const listTabs = defineTool({
       captureSnapshot: false,
       waitForNetwork: false,
       resultOverride: {
-        content: [{
-          type: 'text',
-          text: await context.listTabsMarkdown(),
-        }],
+        content: [
+          {
+            type: 'text',
+            text: await context.listTabsMarkdown(),
+          },
+        ],
       },
     };
   },
 });
 
-const selectTab: ToolFactory = captureSnapshot => defineTool({
-  capability: 'tabs',
+const selectTab: ToolFactory = captureSnapshot =>
+  defineTool({
+    capability: 'tabs',
 
-  schema: {
-    name: 'browser_tab_select',
-    title: 'Select a tab',
-    description: 'Select a tab by index',
-    inputSchema: z.object({
-      index: z.number().describe('The index of the tab to select'),
-    }),
-    type: 'readOnly',
-  },
+    schema: {
+      name: 'browser_tab_select',
+      title: 'Select a tab',
+      description: 'Select a tab by index',
+      inputSchema: z.object({
+        index: z.number().describe('The index of the tab to select'),
+      }),
+      type: 'readOnly',
+    },
 
-  handle: async (context, params) => {
-    await context.selectTab(params.index);
-    const code = [
-      `// <internal code to select tab ${params.index}>`,
-    ];
+    handle: async (context, params) => {
+      await context.selectTab(params.index);
+      const code = [`// <internal code to select tab ${params.index}>`];
 
-    return {
-      code,
-      captureSnapshot,
-      waitForNetwork: false
-    };
-  },
-});
+      return {
+        code,
+        captureSnapshot,
+        waitForNetwork: false,
+      };
+    },
+  });
 
-const newTab: ToolFactory = captureSnapshot => defineTool({
-  capability: 'tabs',
+const newTab: ToolFactory = captureSnapshot =>
+  defineTool({
+    capability: 'tabs',
 
-  schema: {
-    name: 'browser_tab_new',
-    title: 'Open a new tab',
-    description: 'Open a new tab',
-    inputSchema: z.object({
-      url: z.string().optional().describe('The URL to navigate to in the new tab. If not provided, the new tab will be blank.'),
-    }),
-    type: 'readOnly',
-  },
+    schema: {
+      name: 'browser_tab_new',
+      title: 'Open a new tab',
+      description: 'Open a new tab',
+      inputSchema: z.object({
+        url: z
+          .string()
+          .optional()
+          .describe('The URL to navigate to in the new tab. If not provided, the new tab will be blank.'),
+      }),
+      type: 'readOnly',
+    },
 
-  handle: async (context, params) => {
-    await context.newTab();
-    if (params.url)
-      await context.currentTabOrDie().navigate(params.url);
+    handle: async (context, params) => {
+      await context.newTab();
+      if (params.url) await context.currentTabOrDie().navigate(params.url);
 
-    const code = [
-      `// <internal code to open a new tab>`,
-    ];
-    return {
-      code,
-      captureSnapshot,
-      waitForNetwork: false
-    };
-  },
-});
+      const code = [`// <internal code to open a new tab>`];
+      return {
+        code,
+        captureSnapshot,
+        waitForNetwork: false,
+      };
+    },
+  });
 
-const closeTab: ToolFactory = captureSnapshot => defineTool({
-  capability: 'tabs',
+const closeTab: ToolFactory = captureSnapshot =>
+  defineTool({
+    capability: 'tabs',
 
-  schema: {
-    name: 'browser_tab_close',
-    title: 'Close a tab',
-    description: 'Close a tab',
-    inputSchema: z.object({
-      index: z.number().optional().describe('The index of the tab to close. Closes current tab if not provided.'),
-    }),
-    type: 'destructive',
-  },
+    schema: {
+      name: 'browser_tab_close',
+      title: 'Close a tab',
+      description: 'Close a tab',
+      inputSchema: z.object({
+        index: z.number().optional().describe('The index of the tab to close. Closes current tab if not provided.'),
+      }),
+      type: 'destructive',
+    },
 
-  handle: async (context, params) => {
-    await context.closeTab(params.index);
-    const code = [
-      `// <internal code to close tab ${params.index}>`,
-    ];
-    return {
-      code,
-      captureSnapshot,
-      waitForNetwork: false
-    };
-  },
-});
+    handle: async (context, params) => {
+      await context.closeTab(params.index);
+      const code = [`// <internal code to close tab ${params.index}>`];
+      return {
+        code,
+        captureSnapshot,
+        waitForNetwork: false,
+      };
+    },
+  });
 
 export default (captureSnapshot: boolean) => [
   listTabs,

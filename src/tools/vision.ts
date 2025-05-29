@@ -20,7 +20,9 @@ import { defineTool } from './tool.js';
 import * as javascript from '../javascript.js';
 
 const elementSchema = z.object({
-  element: z.string().describe('Human-readable element description used to obtain permission to interact with the element'),
+  element: z
+    .string()
+    .describe('Human-readable element description used to obtain permission to interact with the element'),
 });
 
 const screenshot = defineTool({
@@ -42,17 +44,18 @@ const screenshot = defineTool({
       `await page.screenshot(${javascript.formatObject(options)});`,
     ];
 
-    const action = () => tab.page.screenshot(options).then(buffer => {
-      return {
-        content: [{ type: 'image' as 'image', data: buffer.toString('base64'), mimeType: 'image/jpeg' }],
-      };
-    });
+    const action = () =>
+      tab.page.screenshot(options).then(buffer => {
+        return {
+          content: [{ type: 'image' as 'image', data: buffer.toString('base64'), mimeType: 'image/jpeg' }],
+        };
+      });
 
     return {
       code,
       action,
       captureSnapshot: false,
-      waitForNetwork: false
+      waitForNetwork: false,
     };
   },
 });
@@ -72,16 +75,13 @@ const moveMouse = defineTool({
 
   handle: async (context, params) => {
     const tab = context.currentTabOrDie();
-    const code = [
-      `// Move mouse to (${params.x}, ${params.y})`,
-      `await page.mouse.move(${params.x}, ${params.y});`,
-    ];
+    const code = [`// Move mouse to (${params.x}, ${params.y})`, `await page.mouse.move(${params.x}, ${params.y});`];
     const action = () => tab.page.mouse.move(params.x, params.y);
     return {
       code,
       action,
       captureSnapshot: false,
-      waitForNetwork: false
+      waitForNetwork: false,
     };
   },
 });
@@ -179,15 +179,11 @@ const type = defineTool({
   handle: async (context, params) => {
     const tab = context.currentTabOrDie();
 
-    const code = [
-      `// Type ${params.text}`,
-      `await page.keyboard.type('${params.text}');`,
-    ];
+    const code = [`// Type ${params.text}`, `await page.keyboard.type('${params.text}');`];
 
     const action = async () => {
       await tab.page.keyboard.type(params.text);
-      if (params.submit)
-        await tab.page.keyboard.press('Enter');
+      if (params.submit) await tab.page.keyboard.press('Enter');
     };
 
     if (params.submit) {
@@ -204,10 +200,4 @@ const type = defineTool({
   },
 });
 
-export default [
-  screenshot,
-  moveMouse,
-  click,
-  drag,
-  type,
-];
+export default [screenshot, moveMouse, click, drag, type];

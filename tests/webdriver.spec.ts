@@ -29,10 +29,12 @@ test('do not falsely advertise user agent as a test driver', async ({ client, se
     `);
   });
 
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: {
-      url: server.PREFIX,
-    },
-  })).toContainTextContent('webdriver: false');
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: {
+        url: server.PREFIX,
+      },
+    })
+  ).toContainTextContent('webdriver: false');
 });

@@ -21,7 +21,10 @@ import * as javascript from '../javascript.js';
 import { outputFile } from '../config.js';
 
 const pdfSchema = z.object({
-  filename: z.string().optional().describe('File name to save the pdf to. Defaults to `page-{timestamp}.pdf` if not specified.'),
+  filename: z
+    .string()
+    .optional()
+    .describe('File name to save the pdf to. Defaults to `page-{timestamp}.pdf` if not specified.'),
 });
 
 const pdf = defineTool({
@@ -39,10 +42,7 @@ const pdf = defineTool({
     const tab = context.currentTabOrDie();
     const fileName = await outputFile(context.config, params.filename ?? `page-${new Date().toISOString()}.pdf`);
 
-    const code = [
-      `// Save page as ${fileName}`,
-      `await page.pdf(${javascript.formatObject({ path: fileName })});`,
-    ];
+    const code = [`// Save page as ${fileName}`, `await page.pdf(${javascript.formatObject({ path: fileName })});`];
 
     return {
       code,
@@ -53,6 +53,4 @@ const pdf = defineTool({
   },
 });
 
-export default [
-  pdf,
-];
+export default [pdf];

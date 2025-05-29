@@ -17,7 +17,9 @@
 import { test, expect } from './fixtures.js';
 
 test('browser_console_messages', async ({ client, server }) => {
-  server.setContent('/', `
+  server.setContent(
+    '/',
+    `
     <!DOCTYPE html>
     <html>
       <script>
@@ -25,7 +27,9 @@ test('browser_console_messages', async ({ client, server }) => {
         console.error("Error");
       </script>
     </html>
-  `, 'text/html');
+  `,
+    'text/html'
+  );
 
   await client.callTool({
     name: 'browser_navigate',
@@ -37,8 +41,5 @@ test('browser_console_messages', async ({ client, server }) => {
   const resource = await client.callTool({
     name: 'browser_console_messages',
   });
-  expect(resource).toHaveTextContent([
-    '[LOG] Hello, world!',
-    '[ERROR] Error',
-  ].join('\n'));
+  expect(resource).toHaveTextContent(['[LOG] Hello, world!', '[ERROR] Error'].join('\n'));
 });

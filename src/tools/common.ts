@@ -38,41 +38,81 @@ const close = defineTool({
   },
 });
 
-const resize: ToolFactory = captureSnapshot => defineTool({
+const restart = defineTool({
   capability: 'core',
+
   schema: {
-    name: 'browser_resize',
-    title: 'Resize browser window',
-    description: 'Resize the browser window',
+    name: 'browser_restart',
+    title: 'Restart browser',
+    description:
+      'Restart the browser and reset all state. Use this when the browser is in an inconsistent state or experiencing connection issues.',
     inputSchema: z.object({
-      width: z.number().describe('Width of the browser window'),
-      height: z.number().describe('Height of the browser window'),
+      cleanProfile: z
+        .boolean()
+        .optional()
+        .describe(
+          'Clean the browser profile directory to fix corruption issues. Use with caution as this will clear all browser data including cookies and saved logins.'
+        ),
     }),
     type: 'readOnly',
   },
 
   handle: async (context, params) => {
-    const tab = context.currentTabOrDie();
-
-    const code = [
-      `// Resize browser window to ${params.width}x${params.height}`,
-      `await page.setViewportSize({ width: ${params.width}, height: ${params.height} });`
-    ];
-
-    const action = async () => {
-      await tab.page.setViewportSize({ width: params.width, height: params.height });
-    };
-
-    return {
-      code,
-      action,
-      captureSnapshot,
-      waitForNetwork: true
-    };
+    try {
+      await context.resetBrowserContext(params.cleanProfile);
+      const cleanMsg = params.cleanProfile ? ' and cleaned profile directory' : '';
+      return {
+        code: [`// Restarted browser${cleanMsg} and reset all state`],
+        captureSnapshot: false,
+        waitForNetwork: false,
+      };
+    } catch (error: any) {
+      // Error during browser restart
+      return {
+        code: [`// Error restarting browser: ${error.message}`],
+        captureSnapshot: false,
+        waitForNetwork: false,
+      };
+    }
   },
 });
 
-export default (captureSnapshot: boolean) => [
-  close,
-  resize(captureSnapshot)
-];
+const resize: ToolFactory = captureSnapshot =>
+  defineTool({
+    capability: 'core',
+    schema: {
+      name: 'browser_resize',
+      title: 'Resize browser window',
+      description: 'Resize the browser window',
+      inputSchema: z.object({
+        width: z.number().describe('Width of the browser window'),
+        height: z.number().describe('Height of the browser window'),
+      }),
+      type: 'readOnly',
+    },
+
+    handle: async (context, params) => {
+      const tab = context.currentTabOrDie();
+
+      const code = [
+        `// Resize browser window to ${params.width}x${params.height}`,
+        `await page.setViewportSize({ width: ${params.width}, height: ${params.height} });`,
+      ];
+
+      const action = async () => {
+        await tab.page.setViewportSize({
+          width: params.width,
+          height: params.height,
+        });
+      };
+
+      return {
+        code,
+        action,
+        captureSnapshot,
+        waitForNetwork: true,
+      };
+    },
+  });
+
+export default (captureSnapshot: boolean) => [close, restart, resize(captureSnapshot)];

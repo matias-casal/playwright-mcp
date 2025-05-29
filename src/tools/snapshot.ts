@@ -42,7 +42,9 @@ const snapshot = defineTool({
 });
 
 const elementSchema = z.object({
-  element: z.string().describe('Human-readable element description used to obtain permission to interact with the element'),
+  element: z
+    .string()
+    .describe('Human-readable element description used to obtain permission to interact with the element'),
   ref: z.string().describe('Exact target element reference from the page snapshot'),
 });
 
@@ -60,10 +62,7 @@ const click = defineTool({
     const tab = context.currentTabOrDie();
     const locator = tab.snapshotOrDie().refLocator(params);
 
-    const code = [
-      `// Click ${params.element}`,
-      `await page.${await generateLocator(locator)}.click();`
-    ];
+    const code = [`// Click ${params.element}`, `await page.${await generateLocator(locator)}.click();`];
 
     return {
       code,
@@ -81,9 +80,17 @@ const drag = defineTool({
     title: 'Drag mouse',
     description: 'Perform drag and drop between two elements',
     inputSchema: z.object({
-      startElement: z.string().describe('Human-readable source element description used to obtain the permission to interact with the element'),
+      startElement: z
+        .string()
+        .describe(
+          'Human-readable source element description used to obtain the permission to interact with the element'
+        ),
       startRef: z.string().describe('Exact source element reference from the page snapshot'),
-      endElement: z.string().describe('Human-readable target element description used to obtain the permission to interact with the element'),
+      endElement: z
+        .string()
+        .describe(
+          'Human-readable target element description used to obtain the permission to interact with the element'
+        ),
       endRef: z.string().describe('Exact target element reference from the page snapshot'),
     }),
     type: 'destructive',
@@ -96,7 +103,7 @@ const drag = defineTool({
 
     const code = [
       `// Drag ${params.startElement} to ${params.endElement}`,
-      `await page.${await generateLocator(startLocator)}.dragTo(page.${await generateLocator(endLocator)});`
+      `await page.${await generateLocator(startLocator)}.dragTo(page.${await generateLocator(endLocator)});`,
     ];
 
     return {
@@ -122,10 +129,7 @@ const hover = defineTool({
     const snapshot = context.currentTabOrDie().snapshotOrDie();
     const locator = snapshot.refLocator(params);
 
-    const code = [
-      `// Hover over ${params.element}`,
-      `await page.${await generateLocator(locator)}.hover();`
-    ];
+    const code = [`// Hover over ${params.element}`, `await page.${await generateLocator(locator)}.hover();`];
 
     return {
       code,
@@ -139,7 +143,12 @@ const hover = defineTool({
 const typeSchema = elementSchema.extend({
   text: z.string().describe('Text to type into the element'),
   submit: z.boolean().optional().describe('Whether to submit entered text (press Enter after)'),
-  slowly: z.boolean().optional().describe('Whether to type one character at a time. Useful for triggering key handlers in the page. By default entire text is filled in at once.'),
+  slowly: z
+    .boolean()
+    .optional()
+    .describe(
+      'Whether to type one character at a time. Useful for triggering key handlers in the page. By default entire text is filled in at once.'
+    ),
 });
 
 const type = defineTool({
@@ -185,7 +194,9 @@ const type = defineTool({
 });
 
 const selectOptionSchema = elementSchema.extend({
-  values: z.array(z.string()).describe('Array of values to select in the dropdown. This can be a single value or multiple values.'),
+  values: z
+    .array(z.string())
+    .describe('Array of values to select in the dropdown. This can be a single value or multiple values.'),
 });
 
 const selectOption = defineTool({
@@ -204,7 +215,7 @@ const selectOption = defineTool({
 
     const code = [
       `// Select options [${params.values.join(', ')}] in ${params.element}`,
-      `await page.${await generateLocator(locator)}.selectOption(${javascript.formatObject(params.values)});`
+      `await page.${await generateLocator(locator)}.selectOption(${javascript.formatObject(params.values)});`,
     ];
 
     return {
@@ -216,11 +227,4 @@ const selectOption = defineTool({
   },
 });
 
-export default [
-  snapshot,
-  click,
-  drag,
-  hover,
-  type,
-  selectOption,
-];
+export default [snapshot, click, drag, hover, type, selectOption];

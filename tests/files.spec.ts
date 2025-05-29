@@ -18,15 +18,21 @@ import { test, expect } from './fixtures.js';
 import fs from 'fs/promises';
 
 test('browser_file_upload', async ({ client, server }, testInfo) => {
-  server.setContent('/', `
+  server.setContent(
+    '/',
+    `
     <input type="file" />
     <button>Button</button>
-  `, 'text/html');
+  `,
+    'text/html'
+  );
 
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: server.PREFIX },
-  })).toContainTextContent(`
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.PREFIX },
+    })
+  ).toContainTextContent(`
 \`\`\`yaml
 - generic [ref=e1]:
   - button "Choose File" [ref=e2]
@@ -34,23 +40,29 @@ test('browser_file_upload', async ({ client, server }, testInfo) => {
 \`\`\``);
 
   {
-    expect(await client.callTool({
-      name: 'browser_file_upload',
-      arguments: { paths: [] },
-    })).toHaveTextContent(`
+    expect(
+      await client.callTool({
+        name: 'browser_file_upload',
+        arguments: { paths: [] },
+      })
+    ).toHaveTextContent(
+      `
 The tool "browser_file_upload" can only be used when there is related modal state present.
 ### Modal state
 - There is no modal state present
-      `.trim());
+      `.trim()
+    );
   }
 
-  expect(await client.callTool({
-    name: 'browser_click',
-    arguments: {
-      element: 'Textbox',
-      ref: 'e2',
-    },
-  })).toContainTextContent(`### Modal state
+  expect(
+    await client.callTool({
+      name: 'browser_click',
+      arguments: {
+        element: 'Textbox',
+        ref: 'e2',
+      },
+    })
+  ).toContainTextContent(`### Modal state
 - [File chooser]: can be handled by the "browser_file_upload" tool`);
 
   const filePath = testInfo.outputPath('test.txt');
@@ -108,10 +120,12 @@ test('clicking on download link emits download', async ({ startClient, server },
   server.setContent('/', `<a href="/download" download="test.txt">Download</a>`, 'text/html');
   server.setContent('/download', 'Data', 'text/plain');
 
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: server.PREFIX },
-  })).toContainTextContent('- link "Download" [ref=e2]');
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.PREFIX },
+    })
+  ).toContainTextContent('- link "Download" [ref=e2]');
   await client.callTool({
     name: 'browser_click',
     arguments: {
@@ -129,7 +143,10 @@ test('navigating to download link emits download', async ({ startClient, server,
     config: { outputDir: testInfo.outputPath('output') },
   });
 
-  test.skip(mcpBrowser === 'webkit' && process.platform === 'linux', 'https://github.com/microsoft/playwright/blob/8e08fdb52c27bb75de9bf87627bf740fadab2122/tests/library/download.spec.ts#L436');
+  test.skip(
+    mcpBrowser === 'webkit' && process.platform === 'linux',
+    'https://github.com/microsoft/playwright/blob/8e08fdb52c27bb75de9bf87627bf740fadab2122/tests/library/download.spec.ts#L436'
+  );
   server.route('/download', (req, res) => {
     res.writeHead(200, {
       'Content-Type': 'text/plain',
@@ -138,10 +155,12 @@ test('navigating to download link emits download', async ({ startClient, server,
     res.end('Hello world!');
   });
 
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: {
-      url: server.PREFIX + 'download',
-    },
-  })).toContainTextContent('### Downloads');
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: {
+        url: server.PREFIX + 'download',
+      },
+    })
+  ).toContainTextContent('### Downloads');
 });

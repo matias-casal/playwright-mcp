@@ -20,10 +20,14 @@ import { Config } from '../config.js';
 import { test, expect } from './fixtures.js';
 
 test('config user data dir', async ({ startClient, server }, testInfo) => {
-  server.setContent('/', `
+  server.setContent(
+    '/',
+    `
     <title>Title</title>
     <body>Hello, world!</body>
-  `, 'text/html');
+  `,
+    'text/html'
+  );
 
   const config: Config = {
     browser: {
@@ -34,10 +38,12 @@ test('config user data dir', async ({ startClient, server }, testInfo) => {
   await fs.promises.writeFile(configPath, JSON.stringify(config, null, 2));
 
   const client = await startClient({ args: ['--config', configPath] });
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: server.PREFIX },
-  })).toContainTextContent(`Hello, world!`);
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.PREFIX },
+    })
+  ).toContainTextContent(`Hello, world!`);
 
   const files = await fs.promises.readdir(config.browser!.userDataDir!);
   expect(files.length).toBeGreaterThan(0);
@@ -45,19 +51,25 @@ test('config user data dir', async ({ startClient, server }, testInfo) => {
 
 test.describe(() => {
   test.use({ mcpBrowser: '' });
-  test('browserName', { annotation: { type: 'issue', description: 'https://github.com/microsoft/playwright-mcp/issues/458' } }, async ({ startClient }, testInfo) => {
-    const config: Config = {
-      browser: {
-        browserName: 'firefox',
-      },
-    };
-    const configPath = testInfo.outputPath('config.json');
-    await fs.promises.writeFile(configPath, JSON.stringify(config, null, 2));
+  test(
+    'browserName',
+    { annotation: { type: 'issue', description: 'https://github.com/microsoft/playwright-mcp/issues/458' } },
+    async ({ startClient }, testInfo) => {
+      const config: Config = {
+        browser: {
+          browserName: 'firefox',
+        },
+      };
+      const configPath = testInfo.outputPath('config.json');
+      await fs.promises.writeFile(configPath, JSON.stringify(config, null, 2));
 
-    const client = await startClient({ args: ['--config', configPath] });
-    expect(await client.callTool({
-      name: 'browser_navigate',
-      arguments: { url: 'data:text/html,<script>document.title = navigator.userAgent</script>' },
-    })).toContainTextContent(`Firefox`);
-  });
+      const client = await startClient({ args: ['--config', configPath] });
+      expect(
+        await client.callTool({
+          name: 'browser_navigate',
+          arguments: { url: 'data:text/html,<script>document.title = navigator.userAgent</script>' },
+        })
+      ).toContainTextContent(`Firefox`);
+    }
+  );
 });

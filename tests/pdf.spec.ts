@@ -25,9 +25,11 @@ test('save as pdf unavailable', async ({ startClient, server }) => {
     arguments: { url: server.HELLO_WORLD },
   });
 
-  expect(await client.callTool({
-    name: 'browser_pdf_save',
-  })).toHaveTextContent(/Tool \"browser_pdf_save\" not found/);
+  expect(
+    await client.callTool({
+      name: 'browser_pdf_save',
+    })
+  ).toHaveTextContent(/Tool \"browser_pdf_save\" not found/);
 });
 
 test('save as pdf', async ({ startClient, mcpBrowser, server }, testInfo) => {
@@ -35,12 +37,17 @@ test('save as pdf', async ({ startClient, mcpBrowser, server }, testInfo) => {
     config: { outputDir: testInfo.outputPath('output') },
   });
 
-  test.skip(!!mcpBrowser && !['chromium', 'chrome', 'msedge'].includes(mcpBrowser), 'Save as PDF is only supported in Chromium.');
+  test.skip(
+    !!mcpBrowser && !['chromium', 'chrome', 'msedge'].includes(mcpBrowser),
+    'Save as PDF is only supported in Chromium.'
+  );
 
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: server.HELLO_WORLD },
-  })).toContainTextContent(`- generic [ref=e1]: Hello, world!`);
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.HELLO_WORLD },
+    })
+  ).toContainTextContent(`- generic [ref=e1]: Hello, world!`);
 
   const response = await client.callTool({
     name: 'browser_pdf_save',
@@ -50,22 +57,29 @@ test('save as pdf', async ({ startClient, mcpBrowser, server }, testInfo) => {
 
 test('save as pdf (filename: output.pdf)', async ({ startClient, mcpBrowser, server }, testInfo) => {
   const outputDir = testInfo.outputPath('output');
-  test.skip(!!mcpBrowser && !['chromium', 'chrome', 'msedge'].includes(mcpBrowser), 'Save as PDF is only supported in Chromium.');
+  test.skip(
+    !!mcpBrowser && !['chromium', 'chrome', 'msedge'].includes(mcpBrowser),
+    'Save as PDF is only supported in Chromium.'
+  );
   const client = await startClient({
     config: { outputDir },
   });
 
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: server.HELLO_WORLD },
-  })).toContainTextContent(`- generic [ref=e1]: Hello, world!`);
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.HELLO_WORLD },
+    })
+  ).toContainTextContent(`- generic [ref=e1]: Hello, world!`);
 
-  expect(await client.callTool({
-    name: 'browser_pdf_save',
-    arguments: {
-      filename: 'output.pdf',
-    },
-  })).toEqual({
+  expect(
+    await client.callTool({
+      name: 'browser_pdf_save',
+      arguments: {
+        filename: 'output.pdf',
+      },
+    })
+  ).toEqual({
     content: [
       {
         type: 'text',

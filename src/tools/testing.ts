@@ -37,10 +37,12 @@ const generateTest = defineTool({
   handle: async (context, params) => {
     return {
       resultOverride: {
-        content: [{
-          type: 'text',
-          text: instructions(params),
-        }],
+        content: [
+          {
+            type: 'text',
+            text: instructions(params),
+          },
+        ],
       },
       code: [],
       captureSnapshot: false,
@@ -49,19 +51,18 @@ const generateTest = defineTool({
   },
 });
 
-const instructions = (params: { name: string, description: string, steps: string[] }) => [
-  `## Instructions`,
-  `- You are a playwright test generator.`,
-  `- You are given a scenario and you need to generate a playwright test for it.`,
-  '- DO NOT generate test code based on the scenario alone. DO run steps one by one using the tools provided instead.',
-  '- Only after all steps are completed, emit a Playwright TypeScript test that uses @playwright/test based on message history',
-  '- Save generated test file in the tests directory',
-  `Test name: ${params.name}`,
-  `Description: ${params.description}`,
-  `Steps:`,
-  ...params.steps.map((step, index) => `- ${index + 1}. ${step}`),
-].join('\n');
+const instructions = (params: { name: string; description: string; steps: string[] }) =>
+  [
+    `## Instructions`,
+    `- You are a playwright test generator.`,
+    `- You are given a scenario and you need to generate a playwright test for it.`,
+    '- DO NOT generate test code based on the scenario alone. DO run steps one by one using the tools provided instead.',
+    '- Only after all steps are completed, emit a Playwright TypeScript test that uses @playwright/test based on message history',
+    '- Save generated test file in the tests directory',
+    `Test name: ${params.name}`,
+    `Description: ${params.description}`,
+    `Steps:`,
+    ...params.steps.map((step, index) => `- ${index + 1}. ${step}`),
+  ].join('\n');
 
-export default [
-  generateTest,
-];
+export default [generateTest];

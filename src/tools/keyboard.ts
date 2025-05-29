@@ -17,38 +17,34 @@
 import { z } from 'zod';
 import { defineTool, type ToolFactory } from './tool.js';
 
-const pressKey: ToolFactory = captureSnapshot => defineTool({
-  capability: 'core',
+const pressKey: ToolFactory = captureSnapshot =>
+  defineTool({
+    capability: 'core',
 
-  schema: {
-    name: 'browser_press_key',
-    title: 'Press a key',
-    description: 'Press a key on the keyboard',
-    inputSchema: z.object({
-      key: z.string().describe('Name of the key to press or a character to generate, such as `ArrowLeft` or `a`'),
-    }),
-    type: 'destructive',
-  },
+    schema: {
+      name: 'browser_press_key',
+      title: 'Press a key',
+      description: 'Press a key on the keyboard',
+      inputSchema: z.object({
+        key: z.string().describe('Name of the key to press or a character to generate, such as `ArrowLeft` or `a`'),
+      }),
+      type: 'destructive',
+    },
 
-  handle: async (context, params) => {
-    const tab = context.currentTabOrDie();
+    handle: async (context, params) => {
+      const tab = context.currentTabOrDie();
 
-    const code = [
-      `// Press ${params.key}`,
-      `await page.keyboard.press('${params.key}');`,
-    ];
+      const code = [`// Press ${params.key}`, `await page.keyboard.press('${params.key}');`];
 
-    const action = () => tab.page.keyboard.press(params.key);
+      const action = () => tab.page.keyboard.press(params.key);
 
-    return {
-      code,
-      action,
-      captureSnapshot,
-      waitForNetwork: true
-    };
-  },
-});
+      return {
+        code,
+        action,
+        captureSnapshot,
+        waitForNetwork: true,
+      };
+    },
+  });
 
-export default (captureSnapshot: boolean) => [
-  pressKey(captureSnapshot),
-];
+export default (captureSnapshot: boolean) => [pressKey(captureSnapshot)];

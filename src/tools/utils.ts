@@ -22,18 +22,18 @@ export async function waitForCompletion<R>(context: Context, tab: Tab, callback:
   const requests = new Set<playwright.Request>();
   let frameNavigated = false;
   let waitCallback: () => void = () => {};
-  const waitBarrier = new Promise<void>(f => { waitCallback = f; });
+  const waitBarrier = new Promise<void>(f => {
+    waitCallback = f;
+  });
 
   const requestListener = (request: playwright.Request) => requests.add(request);
   const requestFinishedListener = (request: playwright.Request) => {
     requests.delete(request);
-    if (!requests.size)
-      waitCallback();
+    if (!requests.size) waitCallback();
   };
 
   const frameNavigateListener = (frame: playwright.Frame) => {
-    if (frame.parentFrame())
-      return;
+    if (frame.parentFrame()) return;
     frameNavigated = true;
     dispose();
     clearTimeout(timeout);
@@ -59,8 +59,7 @@ export async function waitForCompletion<R>(context: Context, tab: Tab, callback:
 
   try {
     const result = await callback();
-    if (!requests.size && !frameNavigated)
-      waitCallback();
+    if (!requests.size && !frameNavigated) waitCallback();
     await waitBarrier;
     await context.waitForTimeout(1000);
     return result;
@@ -72,8 +71,7 @@ export async function waitForCompletion<R>(context: Context, tab: Tab, callback:
 export function sanitizeForFilePath(s: string) {
   const sanitize = (s: string) => s.replace(/[\x00-\x2C\x2E-\x2F\x3A-\x40\x5B-\x60\x7B-\x7F]+/g, '-');
   const separator = s.lastIndexOf('.');
-  if (separator === -1)
-    return sanitize(s);
+  if (separator === -1) return sanitize(s);
   return sanitize(s.substring(0, separator)) + '.' + sanitize(s.substring(separator + 1));
 }
 
@@ -81,6 +79,9 @@ export async function generateLocator(locator: playwright.Locator): Promise<stri
   return (locator as any)._generateLocatorString();
 }
 
-export async function callOnPageNoTrace<T>(page: playwright.Page, callback: (page: playwright.Page) => Promise<T>): Promise<T> {
+export async function callOnPageNoTrace<T>(
+  page: playwright.Page,
+  callback: (page: playwright.Page) => Promise<T>
+): Promise<T> {
   return await (page as any)._wrapApiCall(() => callback(page), { internal: true });
 }

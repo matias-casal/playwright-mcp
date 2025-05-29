@@ -17,46 +17,40 @@
 import { z } from 'zod';
 import { defineTool, type ToolFactory } from './tool.js';
 
-const handleDialog: ToolFactory = captureSnapshot => defineTool({
-  capability: 'core',
+const handleDialog: ToolFactory = captureSnapshot =>
+  defineTool({
+    capability: 'core',
 
-  schema: {
-    name: 'browser_handle_dialog',
-    title: 'Handle a dialog',
-    description: 'Handle a dialog',
-    inputSchema: z.object({
-      accept: z.boolean().describe('Whether to accept the dialog.'),
-      promptText: z.string().optional().describe('The text of the prompt in case of a prompt dialog.'),
-    }),
-    type: 'destructive',
-  },
+    schema: {
+      name: 'browser_handle_dialog',
+      title: 'Handle a dialog',
+      description: 'Handle a dialog',
+      inputSchema: z.object({
+        accept: z.boolean().describe('Whether to accept the dialog.'),
+        promptText: z.string().optional().describe('The text of the prompt in case of a prompt dialog.'),
+      }),
+      type: 'destructive',
+    },
 
-  handle: async (context, params) => {
-    const dialogState = context.modalStates().find(state => state.type === 'dialog');
-    if (!dialogState)
-      throw new Error('No dialog visible');
+    handle: async (context, params) => {
+      const dialogState = context.modalStates().find(state => state.type === 'dialog');
+      if (!dialogState) throw new Error('No dialog visible');
 
-    if (params.accept)
-      await dialogState.dialog.accept(params.promptText);
-    else
-      await dialogState.dialog.dismiss();
+      if (params.accept) await dialogState.dialog.accept(params.promptText);
+      else await dialogState.dialog.dismiss();
 
-    context.clearModalState(dialogState);
+      context.clearModalState(dialogState);
 
-    const code = [
-      `// <internal code to handle "${dialogState.dialog.type()}" dialog>`,
-    ];
+      const code = [`// <internal code to handle "${dialogState.dialog.type()}" dialog>`];
 
-    return {
-      code,
-      captureSnapshot,
-      waitForNetwork: false,
-    };
-  },
+      return {
+        code,
+        captureSnapshot,
+        waitForNetwork: false,
+      };
+    },
 
-  clearsModalState: 'dialog',
-});
+    clearsModalState: 'dialog',
+  });
 
-export default (captureSnapshot: boolean) => [
-  handleDialog(captureSnapshot),
-];
+export default (captureSnapshot: boolean) => [handleDialog(captureSnapshot)];

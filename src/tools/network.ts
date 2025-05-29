@@ -37,7 +37,7 @@ const requests = defineTool({
       code: [`// <internal code to list network requests>`],
       action: async () => {
         return {
-          content: [{ type: 'text', text: log }]
+          content: [{ type: 'text', text: log }],
         };
       },
       captureSnapshot: false,
@@ -49,11 +49,8 @@ const requests = defineTool({
 function renderRequest(request: playwright.Request, response: playwright.Response | null) {
   const result: string[] = [];
   result.push(`[${request.method().toUpperCase()}] ${request.url()}`);
-  if (response)
-    result.push(`=> [${response.status()}] ${response.statusText()}`);
+  if (response) result.push(`=> [${response.status()}] ${response.statusText()}`);
   return result.join(' ');
 }
 
-export default [
-  requests,
-];
+export default [requests];

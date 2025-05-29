@@ -41,15 +41,10 @@ export class PageSnapshot {
 
   private async _build() {
     const snapshot = await callOnPageNoTrace(this._page, page => (page as PageEx)._snapshotForAI());
-    this._text = [
-      `- Page Snapshot`,
-      '```yaml',
-      snapshot,
-      '```',
-    ].join('\n');
+    this._text = [`- Page Snapshot`, '```yaml', snapshot, '```'].join('\n');
   }
 
-  refLocator(params: { element: string, ref: string }): playwright.Locator {
+  refLocator(params: { element: string; ref: string }): playwright.Locator {
     return this._page.locator(`aria-ref=${params.ref}`).describe(params.element);
   }
 }

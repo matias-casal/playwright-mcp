@@ -19,10 +19,12 @@ import { test, expect } from './fixtures.js';
 test('cdp server', async ({ cdpServer, startClient, server }) => {
   await cdpServer.start();
   const client = await startClient({ args: [`--cdp-endpoint=${cdpServer.endpoint}`] });
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: server.HELLO_WORLD },
-  })).toContainTextContent(`- generic [ref=e1]: Hello, world!`);
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.HELLO_WORLD },
+    })
+  ).toContainTextContent(`- generic [ref=e1]: Hello, world!`);
 });
 
 test('cdp server reuse tab', async ({ cdpServer, startClient, server }) => {
@@ -32,17 +34,21 @@ test('cdp server reuse tab', async ({ cdpServer, startClient, server }) => {
   const [page] = browserContext.pages();
   await page.goto(server.HELLO_WORLD);
 
-  expect(await client.callTool({
-    name: 'browser_click',
-    arguments: {
-      element: 'Hello, world!',
-      ref: 'f0',
-    },
-  })).toHaveTextContent(`Error: No current snapshot available. Capture a snapshot of navigate to a new location first.`);
+  expect(
+    await client.callTool({
+      name: 'browser_click',
+      arguments: {
+        element: 'Hello, world!',
+        ref: 'f0',
+      },
+    })
+  ).toHaveTextContent(`Error: No current snapshot available. Capture a snapshot of navigate to a new location first.`);
 
-  expect(await client.callTool({
-    name: 'browser_snapshot',
-  })).toHaveTextContent(`
+  expect(
+    await client.callTool({
+      name: 'browser_snapshot',
+    })
+  ).toHaveTextContent(`
 - Ran Playwright code:
 \`\`\`js
 // <internal code to capture accessibility snapshot>
@@ -60,18 +66,26 @@ test('cdp server reuse tab', async ({ cdpServer, startClient, server }) => {
 test('should throw connection error and allow re-connecting', async ({ cdpServer, startClient, server }) => {
   const client = await startClient({ args: [`--cdp-endpoint=${cdpServer.endpoint}`] });
 
-  server.setContent('/', `
+  server.setContent(
+    '/',
+    `
     <title>Title</title>
     <body>Hello, world!</body>
-  `, 'text/html');
+  `,
+    'text/html'
+  );
 
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: server.PREFIX },
-  })).toContainTextContent(`Error: browserType.connectOverCDP: connect ECONNREFUSED`);
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.PREFIX },
+    })
+  ).toContainTextContent(`Error: browserType.connectOverCDP: connect ECONNREFUSED`);
   await cdpServer.start();
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: server.PREFIX },
-  })).toContainTextContent(`- generic [ref=e1]: Hello, world!`);
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.PREFIX },
+    })
+  ).toContainTextContent(`- generic [ref=e1]: Hello, world!`);
 });

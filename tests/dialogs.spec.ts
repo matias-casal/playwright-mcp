@@ -21,18 +21,22 @@ test.skip(({ mcpBrowser, mcpHeadless }) => mcpBrowser === 'webkit' && mcpHeadles
 
 test('alert dialog', async ({ client, server }) => {
   server.setContent('/', `<button onclick="alert('Alert')">Button</button>`, 'text/html');
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: server.PREFIX },
-  })).toContainTextContent('- button "Button" [ref=e2]');
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.PREFIX },
+    })
+  ).toContainTextContent('- button "Button" [ref=e2]');
 
-  expect(await client.callTool({
-    name: 'browser_click',
-    arguments: {
-      element: 'Button',
-      ref: 'e2',
-    },
-  })).toHaveTextContent(`- Ran Playwright code:
+  expect(
+    await client.callTool({
+      name: 'browser_click',
+      arguments: {
+        element: 'Button',
+        ref: 'e2',
+      },
+    })
+  ).toHaveTextContent(`- Ran Playwright code:
 \`\`\`js
 // Click Button
 await page.getByRole('button', { name: 'Button' }).click();
@@ -66,25 +70,33 @@ await page.getByRole('button', { name: 'Button' }).click();
 test('two alert dialogs', async ({ client, server }) => {
   test.fixme(true, 'Race between the dialog and ariaSnapshot');
 
-  server.setContent('/', `
+  server.setContent(
+    '/',
+    `
     <title>Title</title>
     <body>
       <button onclick="alert('Alert 1');alert('Alert 2');">Button</button>
     </body>
-  `, 'text/html');
+  `,
+    'text/html'
+  );
 
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: server.PREFIX },
-  })).toContainTextContent('- button "Button" [ref=e2]');
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.PREFIX },
+    })
+  ).toContainTextContent('- button "Button" [ref=e2]');
 
-  expect(await client.callTool({
-    name: 'browser_click',
-    arguments: {
-      element: 'Button',
-      ref: 'e2',
-    },
-  })).toHaveTextContent(`- Ran Playwright code:
+  expect(
+    await client.callTool({
+      name: 'browser_click',
+      arguments: {
+        element: 'Button',
+        ref: 'e2',
+      },
+    })
+  ).toHaveTextContent(`- Ran Playwright code:
 \`\`\`js
 // Click Button
 await page.getByRole('button', { name: 'Button' }).click();
@@ -104,25 +116,33 @@ await page.getByRole('button', { name: 'Button' }).click();
 });
 
 test('confirm dialog (true)', async ({ client, server }) => {
-  server.setContent('/', `
+  server.setContent(
+    '/',
+    `
     <title>Title</title>
     <body>
       <button onclick="document.body.textContent = confirm('Confirm')">Button</button>
     </body>
-  `, 'text/html');
+  `,
+    'text/html'
+  );
 
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: server.PREFIX },
-  })).toContainTextContent('- button "Button" [ref=e2]');
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.PREFIX },
+    })
+  ).toContainTextContent('- button "Button" [ref=e2]');
 
-  expect(await client.callTool({
-    name: 'browser_click',
-    arguments: {
-      element: 'Button',
-      ref: 'e2',
-    },
-  })).toContainTextContent(`### Modal state
+  expect(
+    await client.callTool({
+      name: 'browser_click',
+      arguments: {
+        element: 'Button',
+        ref: 'e2',
+      },
+    })
+  ).toContainTextContent(`### Modal state
 - ["confirm" dialog with message "Confirm"]: can be handled by the "browser_handle_dialog" tool`);
 
   const result = await client.callTool({
@@ -141,25 +161,33 @@ test('confirm dialog (true)', async ({ client, server }) => {
 });
 
 test('confirm dialog (false)', async ({ client, server }) => {
-  server.setContent('/', `
+  server.setContent(
+    '/',
+    `
     <title>Title</title>
     <body>
       <button onclick="document.body.textContent = confirm('Confirm')">Button</button>
     </body>
-  `, 'text/html');
+  `,
+    'text/html'
+  );
 
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: server.PREFIX },
-  })).toContainTextContent('- button "Button" [ref=e2]');
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.PREFIX },
+    })
+  ).toContainTextContent('- button "Button" [ref=e2]');
 
-  expect(await client.callTool({
-    name: 'browser_click',
-    arguments: {
-      element: 'Button',
-      ref: 'e2',
-    },
-  })).toContainTextContent(`### Modal state
+  expect(
+    await client.callTool({
+      name: 'browser_click',
+      arguments: {
+        element: 'Button',
+        ref: 'e2',
+      },
+    })
+  ).toContainTextContent(`### Modal state
 - ["confirm" dialog with message "Confirm"]: can be handled by the "browser_handle_dialog" tool`);
 
   const result = await client.callTool({
@@ -176,25 +204,33 @@ test('confirm dialog (false)', async ({ client, server }) => {
 });
 
 test('prompt dialog', async ({ client, server }) => {
-  server.setContent('/', `
+  server.setContent(
+    '/',
+    `
     <title>Title</title>
     <body>
       <button onclick="document.body.textContent = prompt('Prompt')">Button</button>
     </body>
-  `, 'text/html');
+  `,
+    'text/html'
+  );
 
-  expect(await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: server.PREFIX },
-  })).toContainTextContent('- button "Button" [ref=e2]');
+  expect(
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.PREFIX },
+    })
+  ).toContainTextContent('- button "Button" [ref=e2]');
 
-  expect(await client.callTool({
-    name: 'browser_click',
-    arguments: {
-      element: 'Button',
-      ref: 'e2',
-    },
-  })).toContainTextContent(`### Modal state
+  expect(
+    await client.callTool({
+      name: 'browser_click',
+      arguments: {
+        element: 'Button',
+        ref: 'e2',
+      },
+    })
+  ).toContainTextContent(`### Modal state
 - ["prompt" dialog with message "Prompt"]: can be handled by the "browser_handle_dialog" tool`);
 
   const result = await client.callTool({

@@ -63,7 +63,7 @@ export type Config = {
      * Remote endpoint to connect to an existing Playwright server.
      */
     remoteEndpoint?: string;
-  },
+  };
 
   server?: {
     /**
@@ -75,7 +75,7 @@ export type Config = {
      * The host to bind the server to. Default is localhost. Use 0.0.0.0 to bind to all interfaces.
      */
     host?: string;
-  },
+  };
 
   /**
    * List of enabled tool capabilities. Possible values:
