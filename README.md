@@ -770,3 +770,35 @@ X Y coordinate space, based on the provided screenshot.
 </details>
 
 <!--- End of tools generated section -->
+
+## Development
+
+This fork includes enhanced browser state preservation functionality and automatic build processes.
+
+### Pre-commit Build Process
+
+This repository uses Husky pre-commit hooks to ensure code quality:
+
+- **Automatic compilation**: TypeScript is compiled before each commit
+- **Lint and format**: Code is automatically linted and formatted
+- **Build verification**: Commits are blocked if TypeScript compilation fails
+- **Auto-include compiled files**: The `lib/` folder is automatically added to commits
+
+This ensures that:
+
+- ✅ No broken code is committed
+- ✅ The `lib/` folder is always up-to-date
+- ✅ Users can install directly from GitHub without building
+
+### Making Changes
+
+1. Make your changes to TypeScript files in `src/`
+2. Run `git add .` to stage your changes
+3. Run `git commit -m "your message"`
+4. The pre-commit hook will:
+   - Build the project (`npm run build`)
+   - Run linting (`npx lint-staged`)
+   - Add compiled `lib/` files to the commit
+   - Only proceed if everything succeeds
+
+If the build fails, the commit is aborted and you'll need to fix the errors first.
