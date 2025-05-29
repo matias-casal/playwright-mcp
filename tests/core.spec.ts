@@ -297,7 +297,7 @@ test('browser_restart', async ({ client, server }) => {
 
   // browser_restart should return a code block indicating the restart
   expect(restartResponse).toContainTextContent('Restarted browser');
-  expect(restartResponse).toContainTextContent('reset all state');
+  expect(restartResponse).toContainTextContent('reset all internal state');
 
   // After restart, we should be able to navigate again
   expect(
@@ -324,7 +324,7 @@ test('browser_restart with cleanProfile', async ({ client, server }) => {
   // Should indicate both restart and profile cleaning
   expect(restartResponse).toContainTextContent('Restarted browser');
   expect(restartResponse).toContainTextContent('cleaned profile directory');
-  expect(restartResponse).toContainTextContent('reset all state');
+  expect(restartResponse).toContainTextContent('reset all internal state');
 
   // After restart with clean profile, we should still be able to navigate
   expect(
